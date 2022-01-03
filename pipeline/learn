@@ -1,0 +1,315 @@
+#!/usr/bin/env python3
+import argparse
+import logging
+import os
+import sys
+from itertools import zip_longest
+import pandas as pd
+root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(root_dir)
+import progja
+
+
+logger = logging.getLogger(__name__)
+progja.logging.configure_logging()
+
+parser = argparse.ArgumentParser()
+targets = ('kanji', 'words', 'sentences', 'progressions', 'path', 'paths')
+parser.add_argument('target', choices=targets, metavar='<target>',
+    help='The target to learn')
+level_choices = progja.paths.levels
+parser.add_argument('--level', nargs='?', type=int, choices=level_choices,
+    metavar='n', const=1, help='A path level (default: 1)')
+
+
+def main():
+    args = parser.parse_args()
+    if args.target == 'kanji':
+        learn_kanji()
+    elif args.target == 'words':
+        learn_words()
+    elif args.target == 'sentences':
+        learn_sentences()
+    elif args.target == 'progressions':
+        learn_kanji()
+        learn_words()
+        learn_sentences()
+    elif args.target == 'path':
+        learn_path(args.level)
+    elif args.target == 'paths':
+        for level in level_choices:
+            learn_path(level)
+
+
+def learn_kanji():
+    logger.info('learning kanji ...')
+    progressions = build_kanji_progressions()
+    save_kanji_progressions(progressions)
+    logger.info('learned kanji')
+
+
+def build_kanji_progressions():
+    logger.info('building kanji progressions ...')
+    compositions = progja.kanji.load_compositions()
+    build_progression = progja.kanji.progression_builder(compositions)
+    progressions = {}
+    for kanji in progja.kanji.load()['Kanji']:
+        progressions[kanji] = build_progression((kanji, 'kanji'))
+    logger.info('build kanji progressions')
+    return progressions
+
+
+def save_kanji_progressions(progressions):
+    logger.info('saving kanji progressions ...')
+    progressions = [
+        {'Kanji': key, 'Progression': value}
+        for key, value in progressions.items()
+    ]
+    progja.data.save_jsonl(progressions, 'kanji-progressions.json')
+    logger.info('saved kanji progressions')
+
+
+def learn_words():
+    logger.info('learning words ...')
+    progressions = build_word_progressions()
+    save_word_progressions(progressions)
+    logger.info('learned words')
+
+
+def build_word_progressions():
+    logger.info('building word progressions ...')
+    compositions = progja.words.load_compositions()
+    build_progression = progja.words.progression_builder(compositions)
+    progressions = {}
+    for word in compositions:
+        progressions[word] = build_progression((word, 'word'))
+    logger.info('built word progressions')
+    return progressions
+
+
+def save_word_progressions(progressions):
+    logger.info('saving word progressions ...')
+    records = [
+        {'Word': key, 'Progression': value}
+        for key, value in progressions.items()
+    ]
+    progja.data.save_jsonl(records, 'word-progressions.json')
+    logger.info('saved word progressions')
+
+
+def learn_sentences():
+    logger.info('learning sentences ...')
+    progressions = build_sentence_progressions()
+    save_sentence_progressions(progressions)
+    logger.info('learned sentences')
+
+
+def build_sentence_progressions():
+    logger.info('building sentence progressions')
+    compositions = progja.sentences.load_compositions()
+    build_progression = progja.sentences.progression_builder(compositions)
+    progressions = {}
+    for sentence in compositions:
+        progressions[sentence] = build_progression((sentence, 'sentence'))
+    logger.info('built sentence progressions')
+    return progressions
+
+
+def save_sentence_progressions(progressions):
+    logger.info('saving sentence progressions ...')
+    records = [
+        {'Sentence': key, 'Progression': value}
+        for key, value in progressions.items()
+    ]
+    progja.data.save_jsonl(records, 'sentence-progressions.json')
+    logger.info('saved sentence progressions')
+
+
+def learn_path(level):
+    logger.info('learning level {} path ...'.format(level))
+    # determine the word/component limit
+    limit = (
+        1000 if level == 1
+        else 3000 if level == 2
+        else 6000 if level == 3
+        else 10000 if level == 4
+        else None
+    )
+    # learn all components from previous levels (levels are additive)
+    known = set()
+    for i in range(1, level):
+        path = progja.paths.load_level(i)
+        for component in zip(path['Component'], path['Type']):
+            known.add(component)
+    # select new kanji
+    kanji = []
+    if level == 1:
+        df = progja.kanji.load_jouyou()
+        grades = progja.kanji.grades_jouyou_primary
+        kanji = list(df[df['Grade'].isin(grades)]['Kanji'])
+    if level == 2:
+        df = progja.kanji.load_jouyou()
+        grades = progja.kanji.grades_jouyou_secondary
+        kanji = list(df[df['Grade'].isin(grades)]['Kanji'])
+    if level == 3:
+        kanji = list(progja.kanji.load_jinmeiyou()['Kanji'])
+    # filter out known kanji
+    known_kanji = {c[0] for c in known if c[1] == 'kanji'}
+    kanji = [w for w in kanji if w not in known_kanji]
+    logger.info('adding {} new kanji'.format(len(kanji)))
+    # select new words
+    words = progja.words.load_common()
+    words = list((words[:limit] if limit else words)['Word'])
+    # filter out known words
+    known_words = {c[0] for c in known if c[1] == 'word'}
+    words = [w for w in words if w not in known_words]
+    logger.info('adding {} new words'.format(len(words)))
+    # select example sentences
+    sentences = list(progja.sentences.load()['Sentence'])
+    # filter out known sentences
+    known_sentences = {c[0] for c in known if c[1] == 'sentence'}
+    sentences = [s for s in sentences if s not in known_sentences]
+    # select new components
+    components = progja.sentences.count_components()
+    components = list(components.keys())
+    components = components[:limit] if limit else []
+    # filter out known components
+    known_components = {
+        *known,
+        *[(k, 'kanji') for k in kanji],
+        *[(w, 'word') for w in words]
+    }
+    components = [c for c in components if c not in known_components]
+    logger.info('adding {} new components'.format(len(components)))
+    # build the path
+    path = build_path(known, kanji, words, sentences, components)
+    save_path_level(path, level)
+    logger.info('learned path')
+
+
+def build_path(known, kanji, words, sentences, components):
+    logger.info('building path ...')
+    path = create_initial_path(kanji, words, components)
+    path = add_progressions_to_path(path, known)
+    path = add_sentences_to_path(path, known, sentences)
+    logger.info('built path')
+    return path
+
+
+def create_initial_path(kanji, words, components):
+    logger.info('creating initial path ...')
+    kanji_components = [(character, 'kanji') for character in kanji]
+    word_components = [(word, 'word') for word in words]
+    groups = zip_longest(kanji_components, word_components, components)
+    path = {}
+    for group in groups:
+        for component in group:
+            if not component:
+                continue
+            path[component] = None
+    logger.info('created initial path')
+    return list(path.keys())
+
+
+def add_progressions_to_path(path, known):
+    logger.info('adding progressions to path ...')
+    kanji_progressions = progja.kanji.load_progressions()
+    word_progressions = progja.words.load_progressions()
+    kanji_types = ('radical', 'radical-variant', 'kanji', 'kanji-variant')
+    new_path = {}
+    for component in path:
+        dependencies = []
+        if component[1] in kanji_types:
+            dependencies = kanji_progressions[component[0][0]][:-1]
+        if component[1] == 'word':
+            dependencies = word_progressions[component[0]][:-1]
+        for dependency in dependencies:
+            if dependency in known:
+                continue
+            if dependency in new_path:
+                continue
+            new_path[dependency] = None
+        if component not in new_path:
+            new_path[component] = None
+    logger.info('added progressions to path')
+    return list(new_path.keys())
+
+
+def add_sentences_to_path(path, known, sentences):
+    logger.info('adding sentences to path ...')
+    unlockable = find_unlockable_sentences(path, known, sentences)
+    new_path = {}
+    unseen = set()
+    for i, component in enumerate(path):
+        if i % 100 == 0:
+            # remove sentences if all dependencies have been seen
+            required = unseen.union(set(path[i:]))
+            unlockable = list(filter(
+                lambda r: any(c in required for c in r[2]),
+                unlockable
+            ))
+        # add the component to the path and mark it unseen
+        new_path[component] = None
+        unseen.add(component)
+        # try to find a sentence with an unseen component
+        for unlocked_at, sentence, composition in unlockable:
+            sentence_component = (sentence, 'sentence')
+            if unlocked_at > i:
+                break
+            if sentence_component in new_path:
+                continue
+            if not any(c in unseen for c in composition):
+                continue
+            new_path[sentence_component] = None
+            for component in composition:
+                if component not in unseen:
+                    continue
+                unseen.remove(component)
+            break
+    logger.info('added sentences to path')
+    return list(new_path.keys())
+
+
+def find_unlockable_sentences(path, known, sentences):
+    logger.info('finding unlockable sentences ...')
+    progressions = progja.sentences.load_progressions()
+    compositions = progja.sentences.load_compositions()
+    path_set = set(path)
+    path_indexes = {c: i for i, c in enumerate(path)}
+    required = known.union(path_set)
+    unlockable = []
+    for sentence, progression in progressions.items():
+        dependencies = progression[:-1]
+        if any(c not in required for c in dependencies):
+            continue
+        if not any(c in path_set for c in dependencies):
+            continue
+        unlocked_at = max([
+            path_indexes.get(component)
+            for component in dependencies
+            if component in path_set
+        ])
+        composition = compositions.get(sentence, [])
+        unlockable.append((unlocked_at, sentence, composition))
+    unlockable = sorted(unlockable, key=lambda r: (r[0], r[1]))
+    logger.info('found {} unlockable sentences'.format(len(unlockable)))
+    return unlockable
+
+
+def save_path_level(path, level):
+    save_path(path, progja.data.path('path-level-{}.csv'.format(level)))
+
+
+def save_path(path_, path):
+    logger.info('saving path ...')
+    records = [
+        {'Order': i, 'Component': component_text, 'Type': component_type}
+        for i, (component_text, component_type) in enumerate(path_, start=1)
+    ]
+    sort_by = ['Order']
+    pd.DataFrame(records).sort_values(sort_by).to_csv(path, index=None)
+    logger.info('saved path')
+
+
+if __name__ == '__main__':
+    main()

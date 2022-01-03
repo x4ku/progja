@@ -1,0 +1,4 @@
+
+pandas>=1.2
+sudachipy>=0.6.2
+sudachidict_core

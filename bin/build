@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+import argparse
+import os
+
+
+root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--skip', help='Skip steps')
+
+
+def main():
+    args = parser.parse_args()
+    skip = (args.skip or '').split(',')
+    steps = get_steps(skip)
+    execute_steps(steps)
+
+
+def get_steps(skip=None):
+    skip = skip or []
+    steps = []
+    steps.append('cd {}'.format(root_dir))
+    if 'download' not in skip:
+        if 'download-jmdict' not in skip:
+            steps.append('pipeline/download jmdict')
+        if 'download-tatoeba' not in skip:
+            steps.append('pipeline/download tatoeba')
+    if 'convert' not in skip:
+        if 'convert-jmdict' not in skip:
+            steps.append('pipeline/convert jmdict')
+        if 'convert-tatoeba' not in skip:
+            steps.append('pipeline/convert tatoeba')
+    if 'learn' not in skip:
+        if 'learn-progressions' not in skip:
+            steps.append('pipeline/learn progressions')
+        if 'learn-paths' not in skip:
+            steps.append('pipeline/learn paths')
+    if 'test' not in skip:
+        steps.append('python -m unittest -v')
+    if 'prune' not in skip:
+        steps.append('pipeline/prune')
+    if 'generate' not in skip:
+        steps.append('pipeline/generate decks')
+    if 'stats' not in skip:
+        steps.append('pipeline/stats')
+    return steps
+
+
+def execute_steps(steps):
+    os.system(' && '.join(steps))
+
+
+if __name__ == '__main__':
+    main()

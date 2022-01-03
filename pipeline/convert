@@ -1,0 +1,510 @@
+#!/usr/bin/env python3
+import argparse
+import logging
+import os
+import sys
+import pandas as pd
+from bs4 import BeautifulSoup as bs
+root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(root_dir)
+import progja
+
+
+logger = logging.getLogger(__name__)
+progja.logging.configure_logging()
+
+temp_dir = os.path.join(root_dir, 'temp')
+temp_path = lambda *p: os.path.join(temp_dir, *p)
+
+parser = argparse.ArgumentParser()
+targets = ('jmdict', 'tatoeba')
+parser.add_argument('target', choices=targets, metavar='<target>',
+    help='The target to convert')
+
+
+def main():
+    args = parser.parse_args()
+    if args.target == 'jmdict':
+        convert_jmdict()
+    elif args.target == 'tatoeba':
+        convert_tatoeba()
+
+
+def convert_jmdict():
+    logger.info('converting JMdict ...')
+    entries = load_jmdict_entries()
+    words = build_words(entries)
+    words = assign_word_ids(words)
+    compositions = decompose_words(words)
+    save_common_words(words)
+    save_uncommon_words(words)
+    save_common_word_definitions(words)
+    save_uncommon_word_definitions(words)
+    save_word_compositions(compositions)
+    logger.info('converted JMdict')
+
+
+def load_jmdict_entries():
+    logger.info('loading jmdict entries ...')
+    entries = []
+    with open(temp_path('JMdict_e')) as file:
+        lines = [line.rstrip('\n') for line in file]
+        doc = bs(''.join(lines), 'lxml')
+        entries = parse_jmdict_entries(doc)
+    logger.info('loaded jmdict entries')
+    return entries
+
+
+def parse_jmdict_entries(doc):
+    entries = el_all(doc, 'entry')
+    return list(map(parse_jmdict_entry, entries))
+
+
+def parse_jmdict_entry(entry):
+    return {
+        'ent_seq': int(text_one(entry, 'ent_seq')),
+        'k_ele': list(map(parse_jmdict_k_ele, el_all(entry, 'k_ele'))),
+        'r_ele': list(map(parse_jmdict_r_ele, el_all(entry, 'r_ele'))),
+        'sense': list(map(parse_jmdict_sense, el_all(entry, 'sense')))
+    }
+
+
+def parse_jmdict_k_ele(el):
+    return {
+        'keb': text_one(el, 'keb'),
+        'k_inf': text_all(el, 'k_inf'),
+        'ke_pri': text_all(el, 'ke_pri')
+    }
+
+
+def parse_jmdict_r_ele(el):
+    return {
+        'reb': text_one(el, 'reb'),
+        're_nokanji': text_one(el, 're_nokanji'),
+        're_restr': text_all(el, 're_restr'),
+        're_inf': text_all(el, 're_inf'),
+        're_pri': text_all(el, 're_pri')
+    }
+
+
+def parse_jmdict_sense(el):
+    return {
+        'stagk': text_all(el, 'stagk'),
+        'stagr': text_all(el, 'stagr'),
+        'pos': text_all(el, 'pos'),
+        'xref': text_all(el, 'xref'),
+        'ant': text_all(el, 'ant'),
+        'field': text_all(el, 'field'),
+        'misc': text_all(el, 'misc'),
+        's_inf': text_all(el, 's_inf'),
+        'lsource': list(map(parse_jmdict_lsource, el_all(el, 'lsource'))),
+        'dial': text_all(el, 'dial'),
+        'gloss': list(map(parse_jmdict_gloss, el_all(el, 'gloss'))),
+    }
+
+
+def parse_jmdict_lsource(el):
+    return {
+        'lsource': el.text,
+        'xml:lang': el.get('xml:lang'),
+        'ls_type': el.get('ls_type'),
+        'ls_wasei': el.get('ls_wasei')
+    }
+
+
+def parse_jmdict_gloss(el):
+    return {
+        'gloss': el.text,
+        'xml:lang': el.get('xml:lang'),
+        'g_gend': el.get('g_gend'),
+        'g_type': el.get('g_type')
+    }
+
+
+def el_one(el, key):
+    return el.find(key) if el else None
+
+
+def el_all(el, key):
+    return el.find_all(key) if el else []
+
+
+def text_one(el, key):
+    value = el_one(el, key)
+    return value.text if value and len(value.text) > 0 else None
+
+
+def text_all(el, key):
+    return [value.text for value in el_all(el, key) if len(value.text) > 0]
+
+
+def build_words(entries):
+    logger.info('building words ...')
+    kanji_set = set(progja.kanji.load()['Kanji'])
+    words = []
+    for entry in entries:
+        for k_ele in entry.get('k_ele') or [{}]:
+            for r_ele in entry.get('r_ele') or [{}]:
+                # reading elements may be restricted to specific kanji elements
+                re_restr = r_ele.get('re_restr')
+                if re_restr and re_restr == k_ele.get('keb'):
+                    continue
+                word = build_word(entry, k_ele, r_ele)
+                word['Kanji'] = '|'.join([
+                    character
+                    for character in word['Word']
+                    if character in kanji_set
+                ])
+                words.append(word)
+    logger.info('built words')
+    return words
+
+
+def build_word(entry, k_ele, r_ele):
+    keb = k_ele.get('keb')
+    reb = r_ele.get('reb')
+    ent_seq = entry.get('ent_seq')
+    word = keb or reb
+    ke_pri = k_ele.get('ke_pri', [])
+    re_pri = r_ele.get('re_pri', [])
+    ke_nf = next(iter([int(p[2:]) for p in ke_pri if p.startswith('nf')]), 0)
+    re_nf = next(iter([int(p[2:]) for p in re_pri if p.startswith('nf')]), 0)
+    nf = 0 if 0 in (ke_nf, re_nf) else max(ke_nf, re_nf)
+    ke_ichi = 1 if 'ichi1' in ke_pri else 2 if 'ichi2' in ke_pri else 0
+    re_ichi = 1 if 'ichi1' in re_pri else 2 if 'ichi2' in re_pri else 0
+    ichi = 0 if 0 in (ke_ichi, re_ichi) else max(ke_ichi, re_ichi)
+    ke_news = 1 if 'news1' in ke_pri else 2 if 'news2' in ke_pri else 0
+    re_news = 1 if 'news1' in re_pri else 2 if 'news2' in re_pri else 0
+    news = 0 if 0 in (ke_news, re_news) else max(ke_news, re_news)
+    ke_spec = 1 if 'spec1' in ke_pri else 2 if 'spec2' in ke_pri else 0
+    re_spec = 1 if 'spec1' in re_pri else 2 if 'spec2' in re_pri else 0
+    spec = 0 if 0 in (ke_spec, re_spec) else max(ke_spec, re_spec)
+    ke_gai = 1 if 'gai1' in ke_pri else 2 if 'gai2' in ke_pri else 0
+    re_gai = 1 if 'gai1' in re_pri else 2 if 'gai2' in re_pri else 0
+    gai = 0 if 0 in (ke_gai, re_gai) else max(ke_gai, re_gai)
+    is_common = nf > 0 or ichi > 0 or news > 0 or spec > 0 or gai > 0
+    definitions = build_word_definitions(entry, k_ele, r_ele)
+    is_usually_kana = all(d['IsUsuallyKana'] for d in definitions)
+    is_sometimes_kana = any(d['IsUsuallyKana'] for d in definitions)
+    return {
+        'Word': word,
+        'Reading': reb,
+        'Sequence': ent_seq,
+        'ID': '', # added later
+        'Length': len(word),
+        'Kanji': '', # added later
+        'Priority': '|'.join(ke_pri),
+        'PriorityReading': '|'.join(re_pri),
+        'PriorityNF': nf,
+        'PriorityIchi': ichi,
+        'PriorityNews': news,
+        'PrioritySpec': spec,
+        'PriorityGai': gai,
+        'IsCommon': is_common,
+        'IsFalseReading': bool(r_ele.get('re_nokanji')),
+        'IsUsuallyKana': is_usually_kana,
+        'IsSometimesKana': is_sometimes_kana,
+        'Info': '|'.join(k_ele.get('k_inf', [])),
+        'InfoReading': '|'.join(r_ele.get('re_inf', [])),
+        'Definitions': definitions
+    }
+
+
+def build_word_definitions(entry, k_ele, r_ele):
+    keb = k_ele.get('keb')
+    reb = r_ele.get('reb')
+    definitions = []
+    for sense in entry['sense']:
+        # senses may be restricted to specific kanji elements
+        stagk = sense.get('stagk')
+        if stagk and keb not in stagk:
+            continue
+        # senses may be restricted to specific reading elements
+        stagr = sense.get('stagr')
+        if stagr and reb not in stagr:
+            continue
+        definitions.append(build_word_definition(sense))
+    return definitions
+
+
+def build_word_definition(sense):
+    info2 = sense.get('misc', [])
+    is_usually_kana = '&uk;' in info2
+    # get gloss data
+    glosses = []
+    gloss_languages = []
+    gloss_genders = []
+    gloss_types = []
+    for gloss in sense['gloss']:
+        glosses.append(gloss.get('gloss'))
+        gloss_languages.append(gloss.get('xml:lang') or '')
+        gloss_genders.append(gloss.get('g_gend') or '')
+        gloss_types.append(gloss.get('g_type') or '')
+    # get source data
+    sources = []
+    source_languages = []
+    source_types = []
+    source_waseigo = []
+    for source in sense['lsource']:
+        sources.append(source.get('lsource'))
+        source_languages.append(source.get('xml:lang') or '')
+        source_types.append(source.get('ls_type') or '')
+        source_waseigo.append(source.get('ls_wasei') or '')
+    return {
+        'Glosses': '; '.join(glosses),
+        'GlossLanguages': '|'.join(gloss_languages),
+        'GlossGenders': '|'.join(gloss_genders),
+        'GlossTypes': '|'.join(gloss_types),
+        'PartOfSpeech': '|'.join(sense.get('pos', [])),
+        'CrossRef': '|'.join(sense.get('xref', [])),
+        'Antonymns': '|'.join(sense.get('ant', [])),
+        'Field': '|'.join(sense.get('field', [])),
+        'Dialect': '|'.join(sense.get('dial', [])),
+        'IsUsuallyKana': is_usually_kana,
+        'Sources': '|'.join(sources),
+        'SourceLanguages': '|'.join(source_languages),
+        'SourceTypes': '|'.join(source_types),
+        'SourceWaseigo': '|'.join(source_waseigo),
+        'Info': '|'.join(sense.get('s_inf', [])),
+        'Info2': '|'.join(info2)
+    }
+
+
+def decompose_words(words):
+    logger.info('decomposing words ...')
+    compositions = {}
+    for word in words:
+        word_text = word['Word']
+        reading = word['Reading']
+        composition = progja.tokenizer.decompose(word_text)
+        compositions[word_text] = composition
+        if word['IsSometimesKana']:
+            compositions.setdefault(reading, [])
+            compositions[reading] = [
+                component
+                for component in compositions[reading]
+                if component not in composition
+            ]
+            compositions[reading] = [*composition, *compositions[reading]]
+    compositions = [
+        {'Word': key, 'Composition': value}
+        for key, value in compositions.items()
+    ]
+    logger.info('decomposed words')
+    return compositions
+
+
+def assign_word_ids(words):
+    # Sometimes JMdict will change the sequence of entries, and several entries
+    # have the same word and reading, but this approach to uniquely identifying
+    # words should hopefully remain stable over time.
+    logger.info('assigning word IDs ...')
+    sorted_words = sorted([
+        (word['Word'], word['Reading'], word['Sequence'], word)
+        for word in words
+    ])
+    i = 1
+    previous = None
+    assigned = []
+    for word_text, reading, _, word in sorted_words:
+        if previous != (word_text, reading):
+            i = 1
+        word['ID'] = ','.join([word_text, reading, str(i)])
+        i += 1
+        previous = (word_text, reading)
+    logger.info('assigned word IDs')
+    return words
+
+def save_common_words(words):
+    logger.info('saving common words ...')
+    words = filter(lambda w: w['IsCommon'], words)
+    path = progja.data.path('words-common.csv')
+    save_words(words, path)
+    logger.info('saved common words')
+
+
+def save_uncommon_words(words):
+    logger.info('saving uncommon words ...')
+    words = filter(lambda w: not w['IsCommon'], words)
+    path = progja.data.path('words-uncommon.csv')
+    save_words(words, path)
+    logger.info('saved uncommon words')
+
+
+def save_words(words, path):
+    records = [
+        {
+            key: value
+            for key, value in word.items()
+            if key not in ('Definitions')
+        }
+        for word in words
+    ]
+    sort_by = ['Word', 'Reading']
+    pd.DataFrame(records).sort_values(sort_by).to_csv(path, index=None)
+
+
+def save_common_word_definitions(words):
+    logger.info('saving common word definitions ...')
+    words = filter(lambda w: w['IsCommon'], words)
+    path = progja.data.path('word-definitions-common.csv')
+    save_word_definitions(words, path)
+    logger.info('saved common word definitions')
+
+
+def save_uncommon_word_definitions(words):
+    logger.info('saving uncommon word definitions ...')
+    words = filter(lambda w: not w['IsCommon'], words)
+    path = progja.data.path('word-definitions-uncommon.csv')
+    save_word_definitions(words, path)
+    logger.info('saved uncommon word definitions')
+
+
+def save_word_definitions(words, path):
+    records = [
+        {
+            'Word': word['Word'],
+            'Reading': word['Reading'],
+            'Sequence': word['Sequence'],
+            'Index': i,
+            **definition
+        }
+        for word in words
+        for i, definition in enumerate(word['Definitions'])
+    ]
+    sort_by = ['Word', 'Reading', 'Index']
+    pd.DataFrame(records).sort_values(sort_by).to_csv(path, index=None)
+
+
+def save_word_compositions(compositions):
+    logger.info('saving word compositions ...')
+    progja.data.save_jsonl(compositions, 'word-compositions.json')
+    logger.info('saved word compositions')
+
+
+def convert_tatoeba():
+    logger.info('converting Tatoeba ...')
+    sentence_pairs = load_tatoeba_sentence_pairs()
+    sentences = build_sentences(sentence_pairs)
+    compositions = decompose_sentences(sentences)
+    save_sentences(sentences)
+    save_sentence_translations(sentences)
+    save_sentence_compositions(compositions)
+    logger.info('converted Tatoeba')
+
+
+def load_tatoeba_sentence_pairs():
+    logger.info('loading tatoeba sentence pairs ...')
+    sentence_pairs = []
+    with open(temp_path('tatoeba.tsv')) as file:
+        for line in file:
+            line = line.strip().split('\t')
+            sentence_pairs.append({
+                'SentenceID': line[0],
+                'Sentence': line[1],
+                'TranslationID': line[2],
+                'Translation': line[3]
+            })
+    logger.info('loaded tatoeba sentence pairs')
+    return sentence_pairs
+
+
+def build_sentences(sentence_pairs):
+    logger.info('building sentences ...')
+    sentences = {}
+    for sentence_pair in sentence_pairs:
+        sentence = sentence_pair['Sentence']
+        # filter out long sentences
+        if len(sentence) > 80:
+            continue
+        # add the sentence, if necessary
+        if sentence not in sentences:
+            sentences[sentence] = build_sentence(sentence_pair)
+        # add the translation to the sentence
+        sentences[sentence]['Translations'].append({
+            'Translation': sentence_pair['Translation'],
+            'TranslationID': sentence_pair['TranslationID']
+        })
+    logger.info('built sentences')
+    return list(sentences.values())
+
+
+def build_sentence(sentence_pair):
+    sentence = sentence_pair['Sentence']
+    return {
+        'Sentence': sentence,
+        'SentenceID': sentence_pair['SentenceID'],
+        'Length': len(sentence),
+        'Reading': build_sentence_reading(sentence),
+        'Translations': []
+    }
+
+
+def build_sentence_reading(sentence):
+    parts = []
+    for token in progja.tokenizer.tokenize(sentence):
+        if token['Surface'].lower() == token['Reading'].lower():
+            parts.append(token['Surface'])
+        elif token['Reading'] == 'キゴウ':
+            parts.append(token['Surface'])
+        else:
+            parts.append('{}【{}】'.format(token['Surface'], token['Reading']))
+    return ' '.join(parts)
+
+
+def decompose_sentences(sentences):
+    logger.info('decomposing sentences ...')
+    compositions = {}
+    for sentence in sentences:
+        sentence_text = sentence['Sentence']
+        compositions[sentence_text] = progja.tokenizer.decompose(sentence_text)
+    compositions = [
+        {'Sentence': key, 'Composition': value}
+        for key, value in compositions.items()
+    ]
+    logger.info('decomposed sentences')
+    return compositions
+
+
+def save_sentences(sentences):
+    logger.info('saving sentences ...')
+    records = [
+        {
+            key: value
+            for key, value in sentence.items()
+            if key not in ('Translations')
+        }
+        for sentence in sentences
+    ]
+    sort_by = ['Sentence']
+    path = progja.data.path('sentences.csv')
+    pd.DataFrame(records).sort_values(sort_by).to_csv(path, index=None)
+    logger.info('saved sentences')
+
+
+def save_sentence_translations(sentences):
+    logger.info('saving sentence translations ...')
+    records = [
+        {
+            'Sentence': sentence['Sentence'],
+            'Translation': translation['Translation'],
+            'SentenceID': sentence['SentenceID'],
+            'TranslationID': translation['TranslationID'],
+        }
+        for sentence in sentences
+        for translation in sentence['Translations']
+    ]
+    sort_by = ['Sentence', 'TranslationID']
+    path = progja.data.path('sentence-translations.csv')
+    pd.DataFrame(records).sort_values(sort_by).to_csv(path, index=None)
+    logger.info('saved sentence translations')
+
+
+def save_sentence_compositions(compositions):
+    logger.info('saving sentence compositions ...')
+    progja.data.save_jsonl(compositions, 'sentence-compositions.json')
+    logger.info('saved sentence compositions')
+
+
+if __name__ == '__main__':
+    main()

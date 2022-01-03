@@ -1,0 +1,11 @@
+
+-r requirements.txt
+
+beautifulsoup4
+build
+ipykernel
+jupyter
+lxml
+requests
+setuptools
+twine

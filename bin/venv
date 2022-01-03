@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+(
+
+    # exit if any command returns a non-zero exit code
+    set -e
+
+    # make sure virtualenv is installed
+    if ! command -v "virtualenv" &> /dev/null; then
+        echo "error: virtualenv is not installed"
+        return 1
+    fi
+
+    # make sure virtualenv is installed
+    if ! command -v "virtualenv" &> /dev/null; then
+        echo "error: virtualenv is not installed"
+        return 1
+    fi
+
+    # create the virtual environment if it doesn't exit
+    if [[ ! -d "venv" ]]; then
+        virtualenv -p python3 venv
+    fi
+
+    # activate the virtual environment
+    . venv/bin/activate
+
+    # install dependencies with pip
+    pip install -r requirements.txt
+
+)
+
+if [[ "$?" -eq 0 ]]; then
+    # activate the virtual environment
+    . venv/bin/activate
+fi

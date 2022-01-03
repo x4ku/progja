@@ -1,0 +1,42 @@
+
+.card {
+    font-family: arial;
+    font-size: 20px;
+    text-align: left;
+    color: #1f1f1f;
+    background-color: #f9f9f9;
+}
+
+.front .subject {
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.back .section {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+.back .section .label {
+    font-weight: bold;
+}
+
+.back-word .definition .part-of-speech {
+    font-size: 0.8em;
+    color: #7f7f7f;
+    display: block;
+}
+
+.text-japanese {
+    color: #bc002d;
+}
+
+ul, ol {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+ul li, ol li {
+    padding: 0;
+    list-style-position: outside;
+}

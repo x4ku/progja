@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+import argparse
+import gzip
+import logging
+import os
+import sys
+import time
+import requests
+root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(root_dir)
+import progja
+
+
+logger = logging.getLogger(__name__)
+progja.logging.configure_logging()
+
+temp_dir = os.path.join(root_dir, 'temp')
+temp_path = lambda *p: os.path.join(temp_dir, *p)
+
+jmdict_download_url = 'http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz'
+
+tatoeba_download_url = 'https://tatoeba.org/eng/downloads'
+tatoeba_exports_url = 'https://tatoeba.org/eng/exports'
+tatoeba_exports_add_url = 'https://tatoeba.org/eng/exports/add'
+tatoeba_exports_get_url = 'https://tatoeba.org/eng/exports/get/{id}'
+tatoeba_exports_download_url = ('https://tatoeba.org/eng/exports/download/{id}/'
+    '{filename}')
+
+tatoeba_export_timeout = 120
+
+parser = argparse.ArgumentParser()
+targets = ('jmdict', 'tatoeba')
+parser.add_argument('target', choices=targets, metavar='<target>',
+    help='The target to download')
+
+
+def main():
+    args = parser.parse_args()
+    if args.target == 'jmdict': download_jmdict()
+    elif args.target == 'tatoeba': download_tatoeba()
+
+
+def download_jmdict():
+    logger.info('downloading JMdict ...')
+    # download jmdict
+    response = requests.get(jmdict_download_url, stream=True)
+    # decompress the response and convert the entries
+    create_temp_dir()
+    with gzip.GzipFile(fileobj=response.raw) as gzfile:
+        with open(temp_path('JMdict_e'), 'wb') as file:
+            file.write(gzfile.read())
+    logger.info('downloaded JMdict')
+
+
+def download_tatoeba():
+    logger.info('downloading Tatoeba ...')
+    # get tatoeba cookies
+    cookies = get_tatoeba_cookies()
+    # set common request headers
+    headers = {
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': cookies.get('csrfToken'),
+        'Origin': 'https://tatoeba.org',
+        'Referer': tatoeba_download_url
+    }
+    # add an export to the queue
+    id = add_tatoeba_export(headers, cookies)
+    # wait for the export to complete
+    filename = poll_tatoeba_export_status(id, headers, cookies)
+    # remove unused headers
+    del headers['X-Requested-With']
+    del headers['X-CSRF-Token']
+    # download the file
+    download_tatoeba_export(id, filename, headers, cookies)
+    logger.info('downloaded Tatoeba')
+
+
+def get_tatoeba_cookies():
+    # send a request to Tatoeba
+    response = requests.get(tatoeba_download_url)
+    # check the response code
+    if response.status_code != 200:
+        logger.error('failed to get Tatoeba cookies')
+        sys.exit(1)
+    # return the cookies
+    return response.cookies
+
+
+def add_tatoeba_export(headers, cookies):
+    url = tatoeba_exports_add_url
+    data = {
+        'fields[]': ['id', 'text', 'trans_id', 'trans_text'],
+        'format': 'tsv',
+        'from': 'jpn',
+        'to': 'eng',
+        'type': 'pairs'
+    }
+    # add the export to the queue
+    response = requests.post(url, headers=headers, data=data, cookies=cookies)
+    # check the response code
+    if response.status_code != 200:
+        logger.error('failed to add Tatoeba export to queue')
+        sys.exit(1)
+    # return the export id
+    data = response.json()
+    return data['export']['id']
+
+
+def poll_tatoeba_export_status(id, headers, cookies):
+    url = tatoeba_exports_get_url.format(id=id)
+    export_status = None
+    export_filename = None
+    # poll until the status is "online" or the export times out
+    remaining = tatoeba_export_timeout
+    while export_status != 'online' and remaining > 0:
+        # add some delay before the next request
+        time.sleep(1)
+        # get the status
+        response = requests.get(url, headers=headers, cookies=cookies)
+        # check the response code
+        if response.status_code != 200:
+            logger.error('failed to poll Tatoeba export status')
+            sys.exit(1)
+        # get the latest status and filename
+        data = response.json()
+        export_status = data['export']['status']
+        export_filename = data['export']['pretty_filename']
+        # decrement the remaining time counter
+        remaining -= 1
+    # check if the export timed out
+    if remaining <= 0:
+        logger.error('Tatoeba export timed out')
+        sys.exit(1)
+    # return the filename
+    return export_filename
+
+
+def download_tatoeba_export(id, filename, headers, cookies):
+    url = tatoeba_exports_download_url.format(id=id, filename=filename)
+    # download the export
+    response = requests.get(url, headers=headers, cookies=cookies)
+    # check the response code
+    if response.status_code != 200:
+        logger.error('failed to download Tatoeba export')
+        sys.exit(1)
+    # write the export to a file
+    create_temp_dir()
+    with open(temp_path('tatoeba.tsv'), 'w') as file:
+        file.write(response.text)
+
+
+def create_temp_dir():
+    try:
+        os.makedirs(temp_dir)
+    except OSError:
+        pass
+
+
+if __name__ == '__main__':
+    main()

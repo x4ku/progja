@@ -1,0 +1,25 @@
+
+# python
+__pycache__
+.pyc
+
+# builds
+/build
+/dist
+/progja-*
+*.egg-info
+
+# virtual environment
+/venv
+
+# decks
+/progja/data/deck*.csv
+
+# sandbox
+/sandbox
+
+# temporary files
+/temp
+
+# junk
+.DS_Store
