@@ -119,7 +119,8 @@ See the `examples/` directory for more some examples.
 ## Installation
 
 If you would just like to install the Anki decks for this project, see the
-[Shared Deck Installation] section.
+[Installing Anki Decks] section. If you need to upgrade to the latest version,
+see the [Upgrading Anki Decks] section.
 
 You can install this project with pip:
 ```sh
@@ -128,7 +129,9 @@ $ pip install progja
 
 See the `examples/` directory for example usage.
 
-### Shared Deck Installation
+### Installing Anki Decks
+
+It is recommended that you backup your Anki profile before proceeding.
 
 The Anki decks provided by this project are available via AnkiWeb:
 1. [Progressive Japanese (Lv. 1)](https://ankiweb.net/shared/info/1475570445)
@@ -136,6 +139,29 @@ The Anki decks provided by this project are available via AnkiWeb:
 3. [Progressive Japanese (Lv. 3)](https://ankiweb.net/shared/info/188104618)
 4. Progressive Japanese (Lv. 4) (pending)
 5. Progressive Japanese (Lv. 5) (pending)
+
+### Upgrading Anki Decks
+
+It is recommended that you backup your Anki profile before proceeding.
+
+Updating a deck should be as easy as downloading the new `.apkg` file and
+opening it with Anki.
+
+Some of the cards in the deck may get removed in newer versions. You will
+probably want to find these cards and either delete them or suspend them. There
+is a simple way to locate these cards: the `progja::version::<version>` tag.
+
+All cards are tagged with a `progja::version::<version>` tag. When you update to
+a new version, this tag will be updated with the new version number. If a card
+was removed in the new version, then its tag will not be updated, making it easy
+to locate. Simply search for any cards in the deck that are not tagged with the
+new version number.
+
+> For example, if you upgrade from version 1.2.3 to version 1.2.4, cards still
+> tagged with `progja::version::1.2.3` (or some other version) are no longer
+> included in version 1.2.4 of the project. You can use the search term
+> `-tag:progja::version::1.2.4` to find all cards not tagged with the new
+> version number.
 
 ## Caveats
 
@@ -338,4 +364,5 @@ If you are interested in contributing to this project, please see
 [progressions]: #what-is-a-progression
 [path]: #what-is-a-path
 [Stats]: #stats
-[Shared Deck Installation]: #shared-deck-installation
+[Installing Anki Decks]: #installing-anki-decks
+[Upgrading Anki Decks]: #upgrading-anki-decks
