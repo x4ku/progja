@@ -55,6 +55,11 @@ def build_deck(path, style=None):
     deck = []
     for component in zip(path['Component'], path['Type']):
         for card in progja.decks.create_cards(component, style):
+            # add the version tag to the card
+            tags = card['Tags'].split(' ')
+            tags.append('progja::version::{}'.format(progja.VERSION))
+            card['Tags'] = ' '.join(tags)
+            # add the card to the deck
             deck.append(card)
     logger.info('built deck')
     return deck

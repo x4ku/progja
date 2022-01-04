@@ -110,24 +110,23 @@ def create_kanji_notes(kanji):
 
 
 def create_kanji_tags(kanji):
-    tags = {'progja::kanji'}
+    kanji_tag = 'progja::kanji'
+    tags = {kanji_tag}
     if kanji['IsRadical']:
-        tags.add('progja::kanji::radical')
+        tags.add('{}::radical'.format(kanji_tag))
     if kanji['IsJouyou']:
-        tags.add('progja::kanji::jouyou')
+        tags.add('{}::jouyou'.format(kanji_tag))
     if kanji['IsJinmeiyou']:
-        tags.add('progja::kanji::jinmeiyou')
+        tags.add('{}::jinmeiyou'.format(kanji_tag))
     if not pd.isna(kanji['Grade']):
         padded = '00{}'.format(kanji['Grade'])[-2:]
-        tags.add('progja::kanji::grade_{}'.format(padded))
+        tags.add('{}::grade::{}'.format(kanji_tag, padded))
     if not pd.isna(kanji['JLPT']):
-        tags.add('progja::kanji::jlpt')
-        tags.add('progja::kanji::jlpt_n{}'.format(kanji['JLPT']))
-    if not pd.isna(kanji['Strokes']):
-        padded = '00{}'.format(kanji['Strokes'])[-2:]
-        tags.add('progja::kanji::strokes_{}'.format(padded))
-    else:
-        tags.add('progja::kanji::strokes_?')
+        tags.add('{}::jlpt'.format(kanji_tag))
+        tags.add('{}::jlpt::n{}'.format(kanji_tag, kanji['JLPT']))
+    strokes = kanji['Strokes'] if not pd.isna(kanji['Strokes']) else 0
+    padded = '00{}'.format(strokes)[-2:]
+    tags.add('{}::strokes::{}'.format(kanji_tag, padded))
     return sorted(list(tags))
 
 
@@ -185,29 +184,31 @@ def create_word_notes(word):
 
 
 def create_word_tags(word):
-    tags = {'progja::word'}
+    word_tag = 'progja::word'
+    tags = {word_tag}
     if word['IsCommon']:
-        tags.add('progja::word::common')
+        tags.add('{}::common'.format(word_tag))
+    priority_tag = '{}::priority'.format(word_tag)
     if word['PriorityNF'] > 0:
-        tags.add('progja::word::priority')
+        tags.add(priority_tag)
         padded = '00{}'.format(word['PriorityNF'])[-2:]
-        tags.add('progja::word::priority::nf_{}'.format(padded))
+        tags.add('{}::nf::{}'.format(priority_tag, padded))
     if word['PriorityIchi'] > 0:
-        tags.add('progja::word::priority')
-        tags.add('progja::word::priority::ichi_{}'.format(word['PriorityIchi']))
+        tags.add(priority_tag)
+        tags.add('{}::ichi::{}'.format(priority_tag, word['PriorityIchi']))
     if word['PriorityNews'] > 0:
-        tags.add('progja::word::priority')
-        tags.add('progja::word::priority::news_{}'.format(word['PriorityNews']))
+        tags.add(priority_tag)
+        tags.add('{}::news::{}'.format(priority_tag, word['PriorityNews']))
     if word['PrioritySpec'] > 0:
-        tags.add('progja::word::priority')
-        tags.add('progja::word::priority::spec_{}'.format(word['PrioritySpec']))
+        tags.add(priority_tag)
+        tags.add('{}::spec::{}'.format(priority_tag, word['PrioritySpec']))
     if word['PriorityGai'] > 0:
-        tags.add('progja::word::priority')
-        tags.add('progja::word::priority::gai_{}'.format(word['PriorityGai']))
+        tags.add(priority_tag)
+        tags.add('{}::gai::{}'.format(priority_tag, word['PriorityGai']))
     if word['IsUsuallyKana']:
-        tags.add('progja::word::usually_kana')
+        tags.add('{}::usually_kana'.format(word_tag))
     if word['IsSometimesKana']:
-        tags.add('progja::word::sometimes_kana')
+        tags.add('{}::sometimes_kana'.format(word_tag))
     return sorted(list(tags))
 
 
@@ -271,7 +272,8 @@ def create_sentence_card(sentence, style=None, id_pattern=sentence_id_pattern):
 
 
 def create_sentence_tags(sentence):
-    tags = {'progja::sentence'}
+    sentence_tag = 'progja::sentence'
+    tags = {sentence_tag}
     return sorted(list(tags))
 
 
