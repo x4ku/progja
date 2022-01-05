@@ -121,86 +121,22 @@ $ python -m unittest -v tests.test_kanji
 $ python -m unittest -v tests.test_kanji.TestKanjiCompositions
 ```
 
-## Anki Decks
+## Releases
 
-You will first need to build the project and generate the deck import files for
-each path level. You should have `deck-level-*.csv` files within the
-`progja/data` directory before proceeding with the steps below.
+To release a new version of this project, the project should be packaged and
+uploaded to PyPI, the Anki decks should be updated and shared, a git tag should
+be created, and the version number should be bumped to the next version.
 
-**Warning**: Please make sure you back up your Anki profile before importing a
-deck in order to avoid potential data loss or corruption. It might also be a
-good idea to use a separate Anki profile for this.
+1. [Package the Project](#package-the-project)
+2. [Upload to TestPyPI](#upload-to-testpypi)
+3. [Upload to PyPI](#upload-to-pypi)
+4. [Update the Anki Decks](#update-the-anki-decks)
+5. [Create a Git Tag](#create-a-git-tag)
+6. [Bump the Version Number](#bump-the-version-number)
 
-Create a new note type for the cards in this project.
-1. Go to `Tools` > `Manage Note Types`
-2. Click `Add`
-    1. Clone the "Basic" note type
-    2. Name it "Progressive Japanese Note"
-    3. Click `OK`
-3. With the new note type selected, click `Fields...`
-4. Click `Add`
-    1. Name the field "ID"
-    2. Click-and-drag the new field to the first position in the field list
-    3. Click `Save`
-5. With the new note type selected, click `Cards...`
-6. Click `Styling`
-    1. Copy the contents of `progja/data/deck-style.css`
-    2. Paste the contents into the text area
-    3. Click `Save`
-7. Close the note type manager
-
-Create a parent deck called "Progressive Japanese". The decks created/imported
-by the steps below should be placed under this parent deck.
-
-Import each deck (the steps for level 1 are shown below):
-1. Click `Create Deck` in the main Anki interface
-    1. Name it "Progressive Japanese (Lv. 1)"
-    2. Click `OK`
-2. Click `Import File`
-    1. Locate the `progja/data/deck-level-1.csv` file
-    2. Click `Open`
-    3. Select the "Progressive Japanese Note" note type
-    4. Select the "Progressive Japanese (Lv. 1)" deck
-    5. Select `Update existing notes when first field matches`
-    6. Select `Allow HTML in fields`
-    7. Ensure the fields are in the correct order (`ID`, `Front`, `Back`)
-        - Field 4 should be mapped to `Tags`
-    8. Click `Import`
-3. Repeat the above steps for each deck level
-
-## Packaging
+### Package the Project
 
 This project is packaged using `setuptools` and PyPA build.
-
-### Test the Installation
-
-Test the package installation with `pip`:
-```sh
-$ pip install .
-```
-
-You should see that the package is installed:
-```sh
-$ pip freeze | grep progja
-progja @ file:///.../progja
-```
-
-> To upgrade the package:
-> ```sh
-> $ pip install --upgrade .
-> ```
->
-> To remove the package:
-> ```sh
-> $ pip uninstall progja
-> ```
->
-> You can also install the package in "editable" mode while testing:
-> ```sh
-> $ pip install --editable .
-> ```
-
-### Build a Distribution
 
 Invoke PyPA build to build a distribution:
 ```sh
@@ -209,13 +145,34 @@ $ python -m build
 
 This will create a wheel and a `.tar.gz` distribution in the `dist/` directory.
 
+Try out this distribution separately as a sanity check. You could do this from a
+fresh virtual environment in the `sandbox/` directory, for example.
+```sh
+$ cd sandbox
+$ virtualenv venv
+$ . venv/bin/activate
+$ pip install ../dist/progja-<version>.tar.gz
+$ pip install ipython
+```
+```sh
+$ ipython
+In [1]: import progja
+
+In [2]: progja.kanji.load()
+...
+
+# (etc)
+```
+
 ### Upload to TestPyPI
 
 ```sh
 $ twine upload -r testpypi dist/*
 ```
 
-Install and test the package from TestPyPI:
+> See https://twine.readthedocs.io for more information.
+
+Install and test the package from TestPyPI as a sanity check:
 ```sh
 $ pip install \
   --index-url https://test.pypi.org/simple/ \
@@ -223,18 +180,61 @@ $ pip install \
   progja
 ```
 
-See https://twine.readthedocs.io for more information.
-
 ### Upload to PyPI
 
 **Warning**: Please make sure to upload and test with TestPyPI before uploading
-to PyPI. You can only upload a single package per version in PyPI.
+to PyPI. You can only upload a single file per version in PyPI.
 
 ```sh
 $ twine upload dist/*
 ```
 
-Install and test the package from PyPI:
+> See https://twine.readthedocs.io for more information.
+
+Install and test the package from PyPI as a final check:
 ```sh
 $ pip install progja
 ```
+
+### Update the Anki Decks
+
+**Warning**: Please make sure you back up your Anki profile before proceeding in
+order to avoid potential data loss or corruption. It is also recommended that
+you perform this step from a separate Anki profile.
+
+Make sure you have the latest version of each deck installed. Import each deck
+file using the steps below:
+
+1. Click `Import File`
+2. Locate the `progja/data/deck-level-<level>.csv` file and click `Open`
+3. Select the "Progressive Japanese Note" note type
+4. Select the "Progressive Japanese (Lv. <level>)" deck
+5. Select `Update existing notes when first field matches`
+6. Select `Allow HTML in fields`
+7. Ensure the fields are in the correct order (`ID`, `Front`, `Back`)
+    - Field 4 should be mapped to `Tags`
+8. Click `Import`
+
+Remove all cards from the decks that are not tagged with the latest version
+(search for `-tag:progja::version::<version>`).
+
+Sync the decks with AnkiWeb and then share the updated decks from the AnkiWeb.
+<br>
+https://ankiweb.net/
+
+### Create a Git Tag
+
+Tag the commit with the current version:
+```sh
+$ git tag <version>
+```
+
+Push the tag:
+```sh
+$ git push origin <version>
+```
+
+### Bump the Version Number
+
+Bump the version number in `progja/__init__.py`, commit the change, and push the
+commit. Bumping the version number is the last step in the relase process.
