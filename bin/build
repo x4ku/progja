@@ -35,10 +35,10 @@ def get_steps(skip=None):
             steps.append('pipeline/learn progressions')
         if 'learn-paths' not in skip:
             steps.append('pipeline/learn paths')
-    if 'test' not in skip:
-        steps.append('python -m unittest -v')
     if 'prune' not in skip:
         steps.append('pipeline/prune')
+    if 'test' not in skip:
+        steps.append('python -m unittest -v')
     if 'generate' not in skip:
         steps.append('pipeline/generate decks')
     if 'stats' not in skip:
