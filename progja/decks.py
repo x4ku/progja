@@ -218,7 +218,7 @@ def create_word_definition_list(definitions):
     for definition in definitions:
         pos = '; '.join([
             entity_map.get(entity[1:-1], entity)
-            for entity in definition['PartOfSpeech'].split('|')
+            for entity in definition['PartOfSpeech'].split(' ')
         ])
         items.append([
             *create_span(pos, ['part-of-speech']),
@@ -231,10 +231,6 @@ def create_sentence_cards(component, style=None):
     component_text, component_type = component
     cards = []
     for sentence in sentences.find(component_text):
-        sentence['Reading'] = ' '.join([
-            reading or '???'
-            for reading in sentence['Reading'].split('|')
-        ])
         cards.append(create_sentence_card(sentence, style))
     return cards
 

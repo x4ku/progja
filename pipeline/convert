@@ -150,7 +150,7 @@ def build_words(entries):
                 if re_restr and re_restr == k_ele.get('keb'):
                     continue
                 word = build_word(entry, k_ele, r_ele)
-                word['Kanji'] = '|'.join([
+                word['Kanji'] = ' '.join([
                     character
                     for character in word['Word']
                     if character in kanji_set
@@ -193,8 +193,8 @@ def build_word(entry, k_ele, r_ele):
         'ID': '', # added later
         'Length': len(word),
         'Kanji': '', # added later
-        'Priority': '|'.join(ke_pri),
-        'PriorityReading': '|'.join(re_pri),
+        'Priority': ' '.join(sorted(ke_pri)),
+        'PriorityReading': ' '.join(sorted(re_pri)),
         'PriorityNF': nf,
         'PriorityIchi': ichi,
         'PriorityNews': news,
@@ -204,8 +204,8 @@ def build_word(entry, k_ele, r_ele):
         'IsFalseReading': bool(r_ele.get('re_nokanji')),
         'IsUsuallyKana': is_usually_kana,
         'IsSometimesKana': is_sometimes_kana,
-        'Info': '|'.join(k_ele.get('k_inf', [])),
-        'InfoReading': '|'.join(r_ele.get('re_inf', [])),
+        'Info': ' '.join(k_ele.get('k_inf', [])),
+        'InfoReading': ' '.join(r_ele.get('re_inf', [])),
         'Definitions': definitions
     }
 
@@ -228,45 +228,44 @@ def build_word_definitions(entry, k_ele, r_ele):
 
 
 def build_word_definition(sense):
-    info2 = sense.get('misc', [])
-    is_usually_kana = '&uk;' in info2
+    misc = sense.get('misc', [])
+    is_usually_kana = '&uk;' in misc
     # get gloss data
     glosses = []
-    gloss_languages = []
-    gloss_genders = []
-    gloss_types = []
     for gloss in sense['gloss']:
-        glosses.append(gloss.get('gloss'))
-        gloss_languages.append(gloss.get('xml:lang') or '')
-        gloss_genders.append(gloss.get('g_gend') or '')
-        gloss_types.append(gloss.get('g_type') or '')
+        # (ignoring unused "xml:lang" field)
+        # (ignoring unused "g_gend" field)
+        g_type = gloss.get('g_type')
+        if g_type:
+            glosses.append('{} [{}]'.format(gloss.get('gloss'), g_type))
+        else:
+            glosses.append(gloss.get('gloss'))
     # get source data
     sources = []
-    source_languages = []
-    source_types = []
-    source_waseigo = []
     for source in sense['lsource']:
-        sources.append(source.get('lsource'))
-        source_languages.append(source.get('xml:lang') or '')
-        source_types.append(source.get('ls_type') or '')
-        source_waseigo.append(source.get('ls_wasei') or '')
+        notes = list(filter(None, [
+            source.get('xml:lang'),
+            source.get('ls_type'),
+            'wasei' if source.get('ls_wasei') == 'y' else None
+        ]))
+        if notes:
+            sources.append('{} [{}]'.format(
+                source.get('lsource'),
+                ', '.join(notes)
+            ))
+        else:
+            sources.append(source.get('lsource'))
     return {
         'Glosses': '; '.join(glosses),
-        'GlossLanguages': '|'.join(gloss_languages),
-        'GlossGenders': '|'.join(gloss_genders),
-        'GlossTypes': '|'.join(gloss_types),
-        'PartOfSpeech': '|'.join(sense.get('pos', [])),
-        'CrossRef': '|'.join(sense.get('xref', [])),
-        'Antonymns': '|'.join(sense.get('ant', [])),
-        'Field': '|'.join(sense.get('field', [])),
-        'Dialect': '|'.join(sense.get('dial', [])),
+        'PartOfSpeech': ' '.join(sense.get('pos', [])),
+        'CrossRef': ' '.join(sense.get('xref', [])),
+        'Antonymns': ' '.join(sense.get('ant', [])),
+        'Field': ' '.join(sense.get('field', [])),
+        'Dialect': ' '.join(sense.get('dial', [])),
         'IsUsuallyKana': is_usually_kana,
-        'Sources': '|'.join(sources),
-        'SourceLanguages': '|'.join(source_languages),
-        'SourceTypes': '|'.join(source_types),
-        'SourceWaseigo': '|'.join(source_waseigo),
-        'Info': '|'.join(sense.get('s_inf', [])),
-        'Info2': '|'.join(info2)
+        'Sources': '; '.join(sources),
+        'Info': ' / '.join(sense.get('s_inf', [])),
+        'Miscellaneous': ' '.join(misc)
     }
 
 
