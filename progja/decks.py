@@ -27,7 +27,7 @@ def create_radical_cards(component, style=None):
     cards = []
     for radical in kanji.find(component_text):
         if pd.isna(radical['Meaning']):
-            radical['Meaning'] = '???'
+            continue
         cards.append(create_radical_card(radical, style))
     return cards
 
@@ -67,7 +67,7 @@ def create_kanji_cards(component, style=None):
     cards = []
     for kanji_ in kanji.find(component_text):
         if pd.isna(kanji_['Meaning']):
-            kanji_['Meaning'] = '???'
+            continue
         cards.append(create_kanji_card(kanji_, style))
     return cards
 
