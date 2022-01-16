@@ -13,7 +13,7 @@ __pycache__
 /venv
 
 # decks
-/progja/data/deck*.csv
+/progja/data/decks
 
 # sandbox
 /sandbox

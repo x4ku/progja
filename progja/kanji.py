@@ -41,9 +41,9 @@ def find(character):
 def load_radicals():
     logger.info('loading radicals ...')
     df = load()
-    mask = df['IsRadical']
-    sort_by = ['Grade', 'Strokes', 'Kanji']
-    df = df[mask].sort_values(sort_by).reset_index(drop=True)
+    df = df[df['IsRadical']] \
+        .sort_values(['Grade', 'Strokes', 'Kanji']) \
+        .reset_index(drop=True)
     logger.info('loaded radicals')
     return df
 
@@ -52,9 +52,9 @@ def load_radicals():
 def load_jouyou():
     logger.info('loading Jōyō kanji ...')
     df = load()
-    mask = df['IsJouyou']
-    sort_by = ['Grade', 'Strokes', 'Kanji']
-    df = df[mask].sort_values(sort_by).reset_index(drop=True)
+    df = df[df['IsJouyou']] \
+        .sort_values(['Grade', 'Strokes', 'Kanji']) \
+        .reset_index(drop=True)
     logger.info('loaded Jōyō kanji')
     return df
 
@@ -63,9 +63,9 @@ def load_jouyou():
 def load_jinmeiyou():
     logger.info('loading Jinmeiyō kanji ...')
     df = load()
-    mask = df['IsJinmeiyou']
-    sort_by = ['Grade', 'Strokes', 'Kanji']
-    df = df[mask].sort_values(sort_by).reset_index(drop=True)
+    df = df[df['IsJinmeiyou']] \
+        .sort_values(['Grade', 'Strokes', 'Kanji']) \
+        .reset_index(drop=True)
     logger.info('loaded Jinmeiyō kanji')
     return df
 
@@ -73,15 +73,13 @@ def load_jinmeiyou():
 @cache
 def load():
     logger.info('loading kanji ...')
-    filename = 'kanji.csv'
     dtypes = {
         'Grade': 'Int64',
         'JLPT': 'Int64',
         'Strokes': 'Int64'
     }
-    sort_by = ['Grade', 'Strokes', 'Kanji']
-    df = data.load_csv(filename, dtypes=dtypes) \
-        .sort_values(sort_by) \
+    df = data.load_csv('kanji', 'kanji.csv', dtypes=dtypes) \
+        .sort_values(['Grade', 'Strokes', 'Kanji']) \
         .reset_index(drop=True)
     logger.info('loaded kanji')
     return df
@@ -137,9 +135,10 @@ def count_progression_components():
 @cache
 def load_progressions():
     logger.info('loading kanji progressions ...')
+    rows = data.load_json('kanji', 'kanji-progressions.json')
     progressions = {
         row['Kanji']: [tuple(c) for c in row['Progression']]
-        for row in data.load_json('kanji-progressions.json')
+        for row in rows
     }
     logger.info('loaded kanji progressions')
     return progressions

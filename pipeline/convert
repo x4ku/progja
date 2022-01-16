@@ -317,7 +317,7 @@ def assign_word_ids(words):
 def save_common_words(words):
     logger.info('saving common words ...')
     words = filter(lambda w: w['IsCommon'], words)
-    path = progja.data.path('words-common.csv')
+    path = progja.data.path('words', 'words-common.csv')
     save_words(words, path)
     logger.info('saved common words')
 
@@ -325,7 +325,7 @@ def save_common_words(words):
 def save_uncommon_words(words):
     logger.info('saving uncommon words ...')
     words = filter(lambda w: not w['IsCommon'], words)
-    path = progja.data.path('words-uncommon.csv')
+    path = progja.data.path('words', 'words-uncommon.csv')
     save_words(words, path)
     logger.info('saved uncommon words')
 
@@ -346,7 +346,7 @@ def save_words(words, path):
 def save_common_word_definitions(words):
     logger.info('saving common word definitions ...')
     words = filter(lambda w: w['IsCommon'], words)
-    path = progja.data.path('word-definitions-common.csv')
+    path = progja.data.path('words', 'word-definitions-common.csv')
     save_word_definitions(words, path)
     logger.info('saved common word definitions')
 
@@ -354,7 +354,7 @@ def save_common_word_definitions(words):
 def save_uncommon_word_definitions(words):
     logger.info('saving uncommon word definitions ...')
     words = filter(lambda w: not w['IsCommon'], words)
-    path = progja.data.path('word-definitions-uncommon.csv')
+    path = progja.data.path('words', 'word-definitions-uncommon.csv')
     save_word_definitions(words, path)
     logger.info('saved uncommon word definitions')
 
@@ -377,7 +377,8 @@ def save_word_definitions(words, path):
 
 def save_word_compositions(compositions):
     logger.info('saving word compositions ...')
-    progja.data.save_jsonl(compositions, 'word-compositions.json')
+    path = ('words', 'word-compositions.json')
+    progja.data.save_jsonl(compositions, *path)
     logger.info('saved word compositions')
 
 
@@ -476,7 +477,7 @@ def save_sentences(sentences):
         for sentence in sentences
     ]
     sort_by = ['Sentence']
-    path = progja.data.path('sentences.csv')
+    path = progja.data.path('sentences', 'sentences.csv')
     pd.DataFrame(records).sort_values(sort_by).to_csv(path, index=None)
     logger.info('saved sentences')
 
@@ -494,14 +495,15 @@ def save_sentence_translations(sentences):
         for translation in sentence['Translations']
     ]
     sort_by = ['Sentence', 'TranslationID']
-    path = progja.data.path('sentence-translations.csv')
+    path = progja.data.path('sentences', 'sentence-translations.csv')
     pd.DataFrame(records).sort_values(sort_by).to_csv(path, index=None)
     logger.info('saved sentence translations')
 
 
 def save_sentence_compositions(compositions):
     logger.info('saving sentence compositions ...')
-    progja.data.save_jsonl(compositions, 'sentence-compositions.json')
+    path = ('sentences', 'sentence-compositions.json')
+    progja.data.save_jsonl(compositions, *path)
     logger.info('saved sentence compositions')
 
 

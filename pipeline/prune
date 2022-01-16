@@ -27,13 +27,13 @@ def remove_unused_sentences():
     sentences = progja.sentences.load()
     mask = sentences['Sentence'].isin(used_sentences)
     sentences = sentences[mask]
-    path = progja.data.path('sentences.csv')
+    path = progja.data.path('sentences', 'sentences.csv')
     sentences.to_csv(path, index=None)
     # prune translations
     translations = progja.sentences.load_translations()
     mask = translations['Sentence'].isin(used_sentences)
     translations = translations[mask]
-    path = progja.data.path('sentence-translations.csv')
+    path = progja.data.path('sentences', 'sentence-translations.csv')
     translations.to_csv(path, index=None)
     # prune compositions
     compositions = progja.sentences.load_compositions()
@@ -42,7 +42,8 @@ def remove_unused_sentences():
         for sentence, components in compositions.items()
         if sentence in used_sentences
     ]
-    progja.data.save_jsonl(compositions, 'sentence-compositions.json')
+    path = ('sentences', 'sentence-compositions.json')
+    progja.data.save_jsonl(compositions, *path)
     # prune progressions
     progressions = progja.sentences.load_progressions()
     progressions = [
@@ -50,7 +51,8 @@ def remove_unused_sentences():
         for sentence, components in progressions.items()
         if sentence in used_sentences
     ]
-    progja.data.save_jsonl(progressions, 'sentence-progressions.json')
+    path = ('sentences', 'sentence-progressions.json')
+    progja.data.save_jsonl(progressions, *path)
     logger.info('removed unused sentences ...')
 
 

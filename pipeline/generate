@@ -73,7 +73,8 @@ def dedupe_deck(deck):
 
 
 def save_level_deck(deck, level):
-    save_deck(deck, progja.data.path('deck-level-{}.csv'.format(level)))
+    filename = 'deck-level-{}.csv'.format(level)
+    save_deck(deck, progja.data.path('decks', filename))
 
 
 def save_deck(deck, path):

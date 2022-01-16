@@ -16,10 +16,11 @@ def load_levels():
 @cache
 def load_level(level):
     filename = 'path-level-{}.csv'.format(level)
-    if not data.exists(filename):
+    if not data.exists('paths', filename):
         raise ValueError('Invalid path level')
     logger.info('loading level {} path ...'.format(level))
-    sort_by = ['Order']
-    df = data.load_csv(filename).sort_values(sort_by).reset_index(drop=True)
+    df = data.load_csv('paths', filename) \
+        .sort_values(['Order']) \
+        .reset_index(drop=True)
     logger.info('loaded level {} path'.format(level))
     return df

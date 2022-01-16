@@ -56,9 +56,12 @@ def find(word=None, reading=None, common=None):
 @cache
 def load_sometimes_kana():
     logger.info('loading words sometimes written in kana ...')
-    dfs = [load_common_sometimes_kana(), load_uncommon_sometimes_kana()]
-    sort_by = ['Word', 'Reading']
-    df = pd.concat(dfs).sort_values(sort_by).reset_index(drop=True)
+    df = pd.concat([
+            load_common_sometimes_kana(),
+            load_uncommon_sometimes_kana()
+        ]) \
+        .sort_values(['Word', 'Reading']) \
+        .reset_index(drop=True)
     logger.info('loaded words sometimes written in kana')
     return df
 
@@ -67,9 +70,9 @@ def load_sometimes_kana():
 def load_common_sometimes_kana():
     logger.info('loading common words sometimes written in kana ...')
     df = load_common()
-    mask = df['IsSometimesKana']
-    sort_by = ['Word', 'Reading']
-    df = df[mask].sort_values(sort_by).reset_index(drop=True)
+    df = df[df['IsSometimesKana']] \
+        .sort_values(['Word', 'Reading']) \
+        .reset_index(drop=True)
     logger.info('loaded common words sometimes written in kana')
     return df
 
@@ -78,9 +81,9 @@ def load_common_sometimes_kana():
 def load_uncommon_sometimes_kana():
     logger.info('loading uncommon words sometimes written in kana ...')
     df = load_uncommon()
-    mask = df['IsSometimesKana']
-    sort_by = ['Word', 'Reading']
-    df = df[mask].sort_values(sort_by).reset_index(drop=True)
+    df = df[df['IsSometimesKana']] \
+        .sort_values(['Word', 'Reading']) \
+        .reset_index(drop=True)
     logger.info('loaded uncommon words sometimes written in kana')
     return df
 
@@ -88,9 +91,9 @@ def load_uncommon_sometimes_kana():
 @cache
 def load():
     logger.info('loading words ...')
-    dfs = [load_common(), load_uncommon()]
-    sort_by = ['Word', 'Reading']
-    df = pd.concat(dfs).sort_values(sort_by).reset_index(drop=True)
+    df = pd.concat([load_common(), load_uncommon()]) \
+        .sort_values(['Word', 'Reading']) \
+        .reset_index(drop=True)
     logger.info('loaded words')
     return df
 
@@ -98,8 +101,7 @@ def load():
 @cache
 def load_common():
     logger.info('loading common words ...')
-    filename = 'words-common.csv'
-    df = data.load_csv(filename)
+    df = data.load_csv('words', 'words-common.csv')
     copy = df.copy()
     copy['_PriorityCount'] = (
         (copy['PriorityNF'] > 0).astype(int)
@@ -118,9 +120,9 @@ def load_common():
 @cache
 def load_uncommon():
     logger.info('loading uncommon words ...')
-    filename = 'words-uncommon.csv'
-    sort_by = ['Word', 'Reading']
-    df = data.load_csv(filename).sort_values(sort_by).reset_index(drop=True)
+    df = data.load_csv('words', 'words-uncommon.csv') \
+        .sort_values(['Word', 'Reading']) \
+        .reset_index(drop=True)
     logger.info('loaded uncommon words')
     return df
 
@@ -128,9 +130,9 @@ def load_uncommon():
 @cache
 def load_definitions():
     logger.info('loading word definitions ...')
-    dfs = [load_common_definitions(), load_uncommon_definitions()]
-    sort_by = ['Word', 'Reading', 'Index']
-    df = pd.concat(dfs).sort_values(sort_by).reset_index(drop=True)
+    df = pd.concat([load_common_definitions(), load_uncommon_definitions()]) \
+        .sort_values(['Word', 'Reading', 'Index']) \
+        .reset_index(drop=True)
     logger.info('loaded word definitions')
     return df
 
@@ -138,11 +140,9 @@ def load_definitions():
 @cache
 def load_common_definitions():
     logger.info('loading common word definitions ...')
-    filename = 'word-definitions-common.csv'
     dtypes = {'SourceTypes': 'str', 'SourceWaseigo': 'str'}
-    sort_by = ['Word', 'Reading', 'Index']
-    df = data.load_csv(filename, dtypes=dtypes) \
-        .sort_values(sort_by) \
+    df = data.load_csv('words', 'word-definitions-common.csv', dtypes=dtypes) \
+        .sort_values(['Word', 'Reading', 'Index']) \
         .reset_index(drop=True)
     logger.info('loaded common word definitions')
     return df
@@ -151,11 +151,10 @@ def load_common_definitions():
 @cache
 def load_uncommon_definitions():
     logger.info('loading uncommon word definitions ...')
-    filename = 'word-definitions-uncommon.csv'
+    path = ('words', 'word-definitions-uncommon.csv')
     dtypes = {'SourceTypes': 'str', 'SourceWaseigo': 'str'}
-    sort_by = ['Word', 'Reading', 'Index']
-    df = data.load_csv(filename, dtypes=dtypes) \
-        .sort_values(sort_by) \
+    df = data.load_csv(*path, dtypes=dtypes) \
+        .sort_values(['Word', 'Reading', 'Index']) \
         .reset_index(drop=True)
     logger.info('loaded uncommon word definitions')
     return df
@@ -178,12 +177,13 @@ def count_components():
 def load_compositions():
     logger.info('loading word compositions')
     classify = component_classifier()
+    rows = data.load_json('words', 'word-compositions.json')
     compositions = {
         row['Word']: [
             (component, classify(component) or 'word-component')
             for component in row['Composition']
         ]
-        for row in data.load_json('word-compositions.json')
+        for row in rows
     }
     logger.info('loaded word compositions')
     return compositions
@@ -205,9 +205,10 @@ def count_progression_components():
 @cache
 def load_progressions():
     logger.info('loading word progressions ...')
+    rows = data.load_json('words', 'word-progressions.json')
     progressions = {
         row['Word']: [tuple(c) for c in row['Progression']]
-        for row in data.load_json('word-progressions.json')
+        for row in rows
     }
     logger.info('loaded word progressions')
     return progressions
