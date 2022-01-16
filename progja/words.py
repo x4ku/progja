@@ -1,3 +1,4 @@
+import csv
 import logging
 from functools import cache
 from random import randint
@@ -212,6 +213,17 @@ def load_progressions():
     }
     logger.info('loaded word progressions')
     return progressions
+
+
+@cache
+def load_entities():
+    logger.info('loading entities ...')
+    entities = {}
+    with open(data.path('words', 'entities.csv')) as file:
+        for row in list(csv.DictReader(file)):
+            entities[row['Entity']] = row['Description']
+    logger.info('loaded entities')
+    return entities
 
 
 def progression_builder(compositions, kanji_progressions=None):
