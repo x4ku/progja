@@ -18,16 +18,14 @@ def decompose(value):
 def tokenize(value, segmentation=1):
     split_mode = get_split_mode(segmentation)
     morphemes = tokenizer.tokenize(value, split_mode)
-    return [
-        {
-            **morpheme_to_token(morpheme),
-            'Tokens': [
-                morpheme_to_token(morpheme2)
-                for morpheme2 in morpheme.split(get_split_mode(3))
-            ]
-        }
-        for morpheme in morphemes
-    ]
+    tokens = []
+    for morpheme in morphemes:
+        token = morpheme_to_token(morpheme)
+        subtokens = []
+        for morpheme2 in morpheme.split(get_split_mode(3)):
+            subtokens.append(morpheme_to_token(morpheme2))
+        tokens.append({**token, 'Tokens': subtokens})
+    return tokens
 
 
 def morpheme_to_token(morpheme):
