@@ -12,26 +12,30 @@ progja.logging.configure_logging()
 
 
 def main():
-    print('\n'.join([
-        '',
-        '> Note: These numbers may not correspond exactly to the number of ',
-        '> cards in each Anki deck.',
-        '',
-        *get_completion_stats(),
-        '',
-        *get_completion_stats_kanji_grade(),
-        '',
-        *get_completion_stats_common_words(),
-        '',
-    ]))
+    logger.info('creating stats file ...')
+    with open(os.path.join(root_dir, 'docs', 'stats.md'), 'w') as file:
+        file.write('\n'.join([
+            '# Statistics',
+            '',
+            'These numbers may not correspond exactly to the number of cards ',
+            'in each Anki deck.',
+            '',
+            *get_completion_stats(),
+            '',
+            *get_completion_stats_kanji_grade(),
+            '',
+            *get_completion_stats_common_words(),
+            '',
+        ]))
+    logger.info('created stats file')
 
 
 def get_completion_stats():
     lines = [
-        'Completion schedule (kanji, words, sentences):',
+        '## Completion schedule (kanji, words, sentences):',
         '',
-        '> The numbers below are cumulative for each path level. The numbers ',
-        '> in parenthesis are cumulative for all path levels.',
+        'The numbers below are cumulative for each path level. The numbers ',
+        'in parenthesis are cumulative for all path levels.',
         '',
         '| Level | % | # | Kanji | Words | Sentences |',
         '| ----- | - | - | ----- | ----- | --------- |'
@@ -79,9 +83,9 @@ def get_completion_stats_kanji_grade():
         for grade in grades
     }
     lines = [
-        'Completion schedule (kanji grade):',
+        '## Completion schedule (kanji grade):',
         '',
-        '> Grade 1-6 and 8 are Jōyō kanji. Grade 9-10 are Jinmeiyō kanji.',
+        'Grade 1-6 and 8 are Jōyō kanji. Grade 9-10 are Jinmeiyō kanji.',
         '',
         '| Level | % | {} |'.format(' | '.join(map(str, grades))),
         '| ----- | - | {} |'.format(' | '.join(list('-' * len(grades))))
@@ -124,9 +128,9 @@ def get_completion_stats_common_words():
         for nf in nfs
     }
     lines = [
-        'Completion schedule (JMdict nf frequency):',
+        '## Completion schedule (JMdict nf frequency):',
         '',
-        "> The lower the nf, the higher a word's frequency.",
+        "The lower the nf, the higher a word's frequency.",
         '',
         '| Level | % | 1-5 | 6-10 | 11-15 | 16-20 | 21-25 | 26-30 | 31+ |',
         '| ----- | - | --- | ---- | ----- | ----- | ----- | ----- | --- |'
