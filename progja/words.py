@@ -102,7 +102,7 @@ def load():
 @cache
 def load_common():
     logger.info('loading common words ...')
-    df = data.load_csv('words', 'words-common.csv')
+    df = data.read_csv('words', 'words-common.csv')
     copy = df.copy()
     copy['_PriorityCount'] = (
         (copy['PriorityNF'] > 0).astype(int)
@@ -121,7 +121,7 @@ def load_common():
 @cache
 def load_uncommon():
     logger.info('loading uncommon words ...')
-    df = data.load_csv('words', 'words-uncommon.csv') \
+    df = data.read_csv('words', 'words-uncommon.csv') \
         .sort_values(['Word', 'Reading']) \
         .reset_index(drop=True)
     logger.info('loaded uncommon words')
@@ -142,7 +142,7 @@ def load_definitions():
 def load_common_definitions():
     logger.info('loading common word definitions ...')
     dtypes = {'SourceTypes': 'str', 'SourceWaseigo': 'str'}
-    df = data.load_csv('words', 'word-definitions-common.csv', dtypes=dtypes) \
+    df = data.read_csv('words', 'word-definitions-common.csv', dtypes=dtypes) \
         .sort_values(['Word', 'Reading', 'Index']) \
         .reset_index(drop=True)
     logger.info('loaded common word definitions')
@@ -154,7 +154,7 @@ def load_uncommon_definitions():
     logger.info('loading uncommon word definitions ...')
     path = ('words', 'word-definitions-uncommon.csv')
     dtypes = {'SourceTypes': 'str', 'SourceWaseigo': 'str'}
-    df = data.load_csv(*path, dtypes=dtypes) \
+    df = data.read_csv(*path, dtypes=dtypes) \
         .sort_values(['Word', 'Reading', 'Index']) \
         .reset_index(drop=True)
     logger.info('loaded uncommon word definitions')
@@ -178,7 +178,7 @@ def count_components():
 def load_compositions():
     logger.info('loading word compositions')
     classify = component_classifier()
-    rows = data.load_json('words', 'word-compositions.json')
+    rows = data.read_json('words', 'word-compositions.json')
     compositions = {
         row['Word']: [
             (component, classify(component) or 'word-component')
@@ -206,7 +206,7 @@ def count_progression_components():
 @cache
 def load_progressions():
     logger.info('loading word progressions ...')
-    rows = data.load_json('words', 'word-progressions.json')
+    rows = data.read_json('words', 'word-progressions.json')
     progressions = {
         row['Word']: [tuple(c) for c in row['Progression']]
         for row in rows

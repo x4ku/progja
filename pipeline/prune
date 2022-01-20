@@ -43,7 +43,7 @@ def remove_unused_sentences():
         if sentence in used_sentences
     ]
     path = ('sentences', 'sentence-compositions.json')
-    progja.data.save_jsonl(compositions, *path)
+    progja.data.write_jsonl(compositions, *path)
     # prune progressions
     progressions = progja.sentences.load_progressions()
     progressions = [
@@ -52,7 +52,7 @@ def remove_unused_sentences():
         if sentence in used_sentences
     ]
     path = ('sentences', 'sentence-progressions.json')
-    progja.data.save_jsonl(progressions, *path)
+    progja.data.write_jsonl(progressions, *path)
     logger.info('removed unused sentences ...')
 
 

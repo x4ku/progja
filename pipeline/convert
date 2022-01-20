@@ -378,7 +378,7 @@ def save_word_definitions(words, path):
 def save_word_compositions(compositions):
     logger.info('saving word compositions ...')
     path = ('words', 'word-compositions.json')
-    progja.data.save_jsonl(compositions, *path)
+    progja.data.write_jsonl(compositions, *path)
     logger.info('saved word compositions')
 
 
@@ -503,7 +503,7 @@ def save_sentence_translations(sentences):
 def save_sentence_compositions(compositions):
     logger.info('saving sentence compositions ...')
     path = ('sentences', 'sentence-compositions.json')
-    progja.data.save_jsonl(compositions, *path)
+    progja.data.write_jsonl(compositions, *path)
     logger.info('saved sentence compositions')
 
 

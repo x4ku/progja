@@ -19,7 +19,7 @@ def load_level(level):
     if not data.exists('paths', filename):
         raise ValueError('Invalid path level')
     logger.info('loading level {} path ...'.format(level))
-    df = data.load_csv('paths', filename) \
+    df = data.read_csv('paths', filename) \
         .sort_values(['Order']) \
         .reset_index(drop=True)
     logger.info('loaded level {} path'.format(level))

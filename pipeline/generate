@@ -36,7 +36,7 @@ def main():
 
 def load_default_deck_style():
     logger.info('loading default deck style ...')
-    style = progja.data.load_text('deck-style.css')
+    style = progja.data.read_text('deck-style.css')
     logger.info('loaded default deck style')
     return style
 

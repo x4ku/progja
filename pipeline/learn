@@ -65,7 +65,7 @@ def save_kanji_progressions(progressions):
         {'Kanji': key, 'Progression': value}
         for key, value in progressions.items()
     ]
-    progja.data.save_jsonl(progressions, 'kanji', 'kanji-progressions.json')
+    progja.data.write_jsonl(progressions, 'kanji', 'kanji-progressions.json')
     logger.info('saved kanji progressions')
 
 
@@ -93,7 +93,7 @@ def save_word_progressions(progressions):
         {'Word': key, 'Progression': value}
         for key, value in progressions.items()
     ]
-    progja.data.save_jsonl(records, 'words', 'word-progressions.json')
+    progja.data.write_jsonl(records, 'words', 'word-progressions.json')
     logger.info('saved word progressions')
 
 
@@ -121,7 +121,7 @@ def save_sentence_progressions(progressions):
         {'Sentence': key, 'Progression': value}
         for key, value in progressions.items()
     ]
-    progja.data.save_jsonl(records, 'sentences', 'sentence-progressions.json')
+    progja.data.write_jsonl(records, 'sentences', 'sentence-progressions.json')
     logger.info('saved sentence progressions')
 
 

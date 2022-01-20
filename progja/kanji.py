@@ -78,7 +78,7 @@ def load():
         'JLPT': 'Int64',
         'Strokes': 'Int64'
     }
-    df = data.load_csv('kanji', 'kanji.csv', dtypes=dtypes) \
+    df = data.read_csv('kanji', 'kanji.csv', dtypes=dtypes) \
         .sort_values(['Grade', 'Strokes', 'Kanji']) \
         .reset_index(drop=True)
     logger.info('loaded kanji')
@@ -135,7 +135,7 @@ def count_progression_components():
 @cache
 def load_progressions():
     logger.info('loading kanji progressions ...')
-    rows = data.load_json('kanji', 'kanji-progressions.json')
+    rows = data.read_json('kanji', 'kanji-progressions.json')
     progressions = {
         row['Kanji']: [tuple(c) for c in row['Progression']]
         for row in rows

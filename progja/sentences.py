@@ -33,7 +33,7 @@ def find(sentence):
 @cache
 def load():
     logger.info('loading sentences ...')
-    df = data.load_csv('sentences', 'sentences.csv') \
+    df = data.read_csv('sentences', 'sentences.csv') \
         .sort_values(['Sentence']) \
         .reset_index(drop=True)
     logger.info('loaded sentences')
@@ -43,7 +43,7 @@ def load():
 @cache
 def load_translations():
     logger.info('loading sentence translations ...')
-    df = data.load_csv('sentences', 'sentence-translations.csv') \
+    df = data.read_csv('sentences', 'sentence-translations.csv') \
         .sort_values(['Sentence', 'TranslationID']) \
         .reset_index(drop=True)
     logger.info('loaded sentence translations')
@@ -67,7 +67,7 @@ def count_components():
 def load_compositions():
     logger.info('loading sentence compositions')
     classify = words.component_classifier()
-    rows = data.load_json('sentences', 'sentence-compositions.json')
+    rows = data.read_json('sentences', 'sentence-compositions.json')
     compositions = {
         row['Sentence']: [
             (component, classify(component) or 'sentence-component')
@@ -95,7 +95,7 @@ def count_progression_components():
 @cache
 def load_progressions():
     logger.info('loading sentence progressions ...')
-    rows = data.load_json('sentences', 'sentence-progressions.json')
+    rows = data.read_json('sentences', 'sentence-progressions.json')
     progressions = {
         row['Sentence']: [tuple(c) for c in row['Progression']]
         for row in rows

@@ -213,7 +213,7 @@ def create_word_tags(word):
 
 
 def create_word_definition_list(definitions):
-    entity_map = entities.load()
+    entity_map = words.load_entities()
     items = []
     for definition in definitions:
         pos = '; '.join([
