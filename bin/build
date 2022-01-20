@@ -6,42 +6,113 @@ import os
 root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--skip', help='Skip steps')
+parser.add_argument('--only', help='Only run the specified steps')
+parser.add_argument('--skip', help='Skip the specified steps')
 
 
 def main():
     args = parser.parse_args()
-    skip = (args.skip or '').split(',')
-    steps = get_steps(skip)
-    execute_steps(steps)
+    only = list(filter(None, (args.only or '').split(',')))
+    skip = list(filter(None, (args.skip or '').split(',')))
+    execute_steps([
+        'cd {}'.format(root_dir),
+        *get_steps(only, skip)
+    ])
 
 
-def get_steps(skip=None):
-    skip = skip or []
+def get_steps(only, skip):
+    return [
+        *get_download_steps(only, skip),
+        *get_convert_steps(only, skip),
+        *get_learn_steps(only, skip),
+        *get_prune_steps(only, skip),
+        *get_test_steps(only, skip),
+        *get_generate_steps(only, skip),
+        *get_stats_steps(only, skip)
+    ]
+
+
+def get_download_steps(only, skip):
     steps = []
-    steps.append('cd {}'.format(root_dir))
-    if 'download' not in skip:
-        if 'download-jmdict' not in skip:
-            steps.append('pipeline/download jmdict')
-        if 'download-tatoeba' not in skip:
-            steps.append('pipeline/download tatoeba')
-    if 'convert' not in skip:
-        if 'convert-jmdict' not in skip:
-            steps.append('pipeline/convert jmdict')
-        if 'convert-tatoeba' not in skip:
-            steps.append('pipeline/convert tatoeba')
-    if 'learn' not in skip:
-        if 'learn-progressions' not in skip:
-            steps.append('pipeline/learn progressions')
-        if 'learn-paths' not in skip:
-            steps.append('pipeline/learn paths')
-    if 'prune' not in skip:
+    download_jmdict = (
+        'download' not in skip
+        and 'download-jmdict' not in skip
+        and (not only or 'download-jmdict' in only or 'download' in only)
+    )
+    download_tatoeba = (
+        'download' not in skip
+        and 'download-jmdict' not in skip
+        and (not only or 'download-tatoeba' in only or 'download' in only)
+    )
+    if download_jmdict:
+        steps.append('pipeline/download jmdict')
+    if download_tatoeba:
+        steps.append('pipeline/download tatoeba')
+    return steps
+
+
+def get_convert_steps(only, skip):
+    steps = []
+    convert_jmdict = (
+        'convert' not in skip
+        and 'convert-jmdict' not in skip
+        and (not only or 'convert-jmdict' in only or 'convert' in only)
+    )
+    convert_tatoeba = (
+        'convert' not in skip
+        and 'convert-jmdict' not in skip
+        and (not only or 'convert-tatoeba' in only or 'convert' in only)
+    )
+    if convert_jmdict:
+        steps.append('pipeline/convert jmdict')
+    if convert_tatoeba:
+        steps.append('pipeline/convert tatoeba')
+    return steps
+
+
+def get_learn_steps(only, skip):
+    steps = []
+    learn_progressions = (
+        'learn' not in skip
+        and 'learn-progressions' not in skip
+        and (not only or 'learn-progressions' in only or 'learn' in only)
+    )
+    learn_paths = (
+        'learn' not in skip
+        and 'learn-paths' not in skip
+        and (not only or 'learn-paths' in only or 'learn' in only)
+    )
+    if learn_progressions:
+        steps.append('pipeline/learn progressions')
+    if learn_paths:
+        steps.append('pipeline/learn paths')
+    return steps
+
+
+def get_prune_steps(only, skip):
+    steps = []
+    if 'prune' not in skip and (not only or 'prune' in only):
         steps.append('pipeline/prune')
-    if 'test' not in skip:
+    return steps
+
+
+def get_test_steps(only, skip):
+    steps = []
+    if 'test' not in skip and (not only or 'test' in only):
         steps.append('python -m unittest -v')
-    if 'generate' not in skip:
+    return steps
+
+
+def get_generate_steps(only, skip):
+    steps = []
+    if 'generate' not in skip and (not only or 'generate' in only):
         steps.append('pipeline/generate decks')
-    if 'stats' not in skip:
+    return steps
+
+
+def get_stats_steps(only, skip):
+    steps = []
+    if 'stats' not in skip and (not only or 'stats' in only):
         steps.append('pipeline/stats')
     return steps
 
