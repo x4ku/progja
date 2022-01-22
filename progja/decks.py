@@ -1,3 +1,4 @@
+import urllib.parse
 import pandas as pd
 from . import entities, kanji, words, sentences
 
@@ -38,7 +39,7 @@ def create_radical_card(radical, style=None, id_pattern=radical_id_pattern):
         front=[
             *create_question_subject(
                 'What is the meaning of the following radical?',
-                radical['Kanji'],
+                create_jisho_link(radical['Kanji'], 'radical'),
                 subject_classes=['text-japanese']
             ),
             *create_div(create_kanji_notes(radical), ['notes'])
@@ -78,7 +79,7 @@ def create_kanji_card(kanji, style=None, id_pattern=kanji_id_pattern):
         front=[
             *create_question_subject(
                 'What is the meaning of the following kanji?',
-                kanji['Kanji'],
+                create_jisho_link(kanji['Kanji'], 'kanji'),
                 subject_classes=['text-japanese']
             ),
             *create_div(create_kanji_notes(kanji), ['notes'])
@@ -145,7 +146,7 @@ def create_word_card(word, style=None, id_pattern=word_id_pattern):
         front=[
             *create_question_subject(
                 'What is the definition of the following word?',
-                word['Word'],
+                create_jisho_link(word['Word'], 'word'),
                 subject_classes=['text-japanese']
             ),
             *create_div(create_word_notes(word), ['notes'])
@@ -330,7 +331,10 @@ def create_progression_section(progression):
 def create_progression_list(progression):
     return create_ordered_list([
         [
-            *create_span(component_text, ['component-text', 'text-japanese']),
+            *create_span(
+                create_jisho_link(component_text, component_type),
+                ['component-text', 'text-japanese']
+            ),
             ' (',
             *create_span(component_type, ['component-type']),
             ')'
@@ -351,6 +355,20 @@ def create_back_section(label, contents, section_classes=None,
         ],
         classes=section_classes
     )
+
+
+def create_jisho_link(component_text, component_type):
+    search_url = 'https://jisho.org/search'
+    query = component_text
+    if component_type in ('radical', 'kanji'):
+        query = '{} #kanji'.format(component_text)
+    href = '{}/{}'.format(search_url, urllib.parse.quote(query))
+    return create_anchor(component_text, href)
+
+
+def create_anchor(content, href, attributes=None):
+    attributes = (attributes or {}) | {'href': href}
+    return _create_el('a', content, attributes)
 
 
 def create_embedded_style_el(style):
@@ -390,10 +408,18 @@ def create_list_item(contents, classes=None):
 
 
 def create_el(el, contents, classes=None):
-    contents = contents if type(contents) == list else [contents]
     classes = ' '.join(classes or [])
+    return _create_el(el, contents, attributes={'class': classes})
+
+
+def _create_el(el, contents, attributes=None):
+    contents = contents if type(contents) == list else [contents]
+    attributes_str = ' '.join([
+        '{}="{}"'.format(key, value)
+        for key, value in (attributes or {}).items()
+    ])
     return [
-        '<{} class="{}">'.format(el, classes) if classes
+        '<{} {}>'.format(el, attributes_str) if attributes
         else '<{}>'.format(el),
             *contents,
         '</{}>'.format(el)
