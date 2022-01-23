@@ -121,6 +121,14 @@ $ python -m unittest -v tests.test_kanji
 $ python -m unittest -v tests.test_kanji.TestKanjiCompositions
 ```
 
+### flake8
+
+You can use `flake8` to check for code style and quality issues:
+```sh
+$ flake8 progja
+$ flake8 --filename '*' pipeline
+```
+
 ## Releases
 
 To release a new version of this project, the project should be packaged and
