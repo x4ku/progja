@@ -362,7 +362,7 @@ def create_jisho_link(component_text, component_type):
     search_url = 'https://jisho.org/search'
     query = component_text
     if component_type in ('radical', 'kanji'):
-        query = '{} #kanji'.format(component_text)
+        query = '{} #kanji'.format(component_text[0])
     href = '{}/{}'.format(search_url, urllib.parse.quote(query))
     return create_anchor(component_text, href)
 
