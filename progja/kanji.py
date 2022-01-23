@@ -1,7 +1,6 @@
 import logging
 from functools import cache
 from random import randint
-import pandas as pd
 from . import data
 
 
@@ -100,7 +99,6 @@ def count_components():
 
 @cache
 def load_compositions():
-    substitute = lambda l: [substitutions.get(c, c) for c in l]
     logger.info('loading kanji compositions ...')
     df = load()
     kanji_set = set(df['Kanji'])
@@ -108,7 +106,10 @@ def load_compositions():
     compositions = {}
     series = (df['Kanji'], df['Components'].fillna(''))
     for kanji, components in zip(*series):
-        components = substitute(filter(None, components.split(' ')))
+        components = [
+            substitutions.get(component, component)
+            for component in filter(None, components.split(' '))
+        ]
         composition = []
         for component in components:
             if component[0] not in kanji_set:
@@ -191,6 +192,7 @@ def component_classifier(kanji=None, radicals=None):
         kanji = set(load()['Kanji'])
     if not radicals:
         radicals = set(load_radicals()['Kanji'])
+
     def classify(text):
         component_type = None
         if len(text) > 1:

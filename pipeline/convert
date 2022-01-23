@@ -7,19 +7,20 @@ import pandas as pd
 from bs4 import BeautifulSoup as bs
 root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(root_dir)
-import progja
+import progja  # noqa: E402
 
 
 logger = logging.getLogger(__name__)
 progja.logging.configure_logging()
 
 temp_dir = os.path.join(root_dir, 'temp')
-temp_path = lambda *p: os.path.join(temp_dir, *p)
+def temp_path(*p): os.path.join(temp_dir, *p)
+
 
 parser = argparse.ArgumentParser()
 targets = ('jmdict', 'tatoeba')
-parser.add_argument('target', choices=targets, metavar='<target>',
-    help='The target to convert')
+parser.add_argument(
+    'target', choices=targets, metavar='<target>', help='The target to convert')
 
 
 def main():
@@ -190,9 +191,9 @@ def build_word(entry, k_ele, r_ele):
         'Word': word,
         'Reading': reb,
         'Sequence': ent_seq,
-        'ID': '', # added later
+        'ID': '',  # added later
         'Length': len(word),
-        'Kanji': '', # added later
+        'Kanji': '',  # added later
         'Priority': ' '.join(sorted(ke_pri)),
         'PriorityReading': ' '.join(sorted(re_pri)),
         'PriorityNF': nf,
@@ -304,7 +305,6 @@ def assign_word_ids(words):
     ])
     i = 1
     previous = None
-    assigned = []
     for word_text, reading, _, word in sorted_words:
         if previous != (word_text, reading):
             i = 1
@@ -313,6 +313,7 @@ def assign_word_ids(words):
         previous = (word_text, reading)
     logger.info('assigned word IDs')
     return words
+
 
 def save_common_words(words):
     logger.info('saving common words ...')

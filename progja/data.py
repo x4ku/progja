@@ -1,4 +1,3 @@
-import csv
 import json
 import logging
 import os
@@ -59,32 +58,36 @@ def path_builder(root_path):
 
 
 path = path_builder(data_dir)
-exists = lambda *p: os.path.exists(path(*p))
-read_text = text_reader(path)
+def exists(*p): os.path.exists(path(*p))
+read_text = text_reader(path)  # noqa: E305
 read_csv = csv_reader(path)
 write_jsonl = jsonl_writer(path)
 read_json = json_reader(path)
 
 
 def load_text(*args, **kwargs):
-    logger.warning('progja.data.load_text() is deprecated. Use '
-        'progja.data.read_text() instead.')
+    logger.warning(
+        'progja.data.load_text() is deprecated. Use progja.data.read_text() '
+        'instead.')
     return read_text(*args, **kwargs)
 
 
 def load_csv(*args, **kwargs):
-    logger.warning('progja.data.load_csv() is deprecated. Use '
-        'progja.data.read_csv() instead.')
+    logger.warning(
+        'progja.data.load_csv() is deprecated. Use progja.data.read_csv() '
+        'instead.')
     return read_csv(*args, **kwargs)
 
 
-def save_jsonl(data, *paths, **kwargs):
-    logger.warning('progja.data.save_jsonl() is deprecated. Use '
-        'progja.data.write_jsonl() instead.')
+def save_jsonl(*args, **kwargs):
+    logger.warning(
+        'progja.data.save_jsonl() is deprecated. Use progja.data.write_jsonl() '
+        'instead.')
     return write_jsonl(*args, **kwargs)
 
 
-def load_json(*paths, **kwargs):
-    logger.warning('progja.data.load_json() is deprecated. Use '
-        'progja.data.read_json() instead.')
+def load_json(*args, **kwargs):
+    logger.warning(
+        'progja.data.load_json() is deprecated. Use progja.data.read_json() '
+        'instead.')
     return read_json(*args, **kwargs)

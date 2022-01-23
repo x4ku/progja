@@ -1,6 +1,6 @@
 import urllib.parse
 import pandas as pd
-from . import entities, kanji, words, sentences
+from . import kanji, words, sentences
 
 
 radical_id_pattern = 'progja:radical:{Kanji}'
@@ -10,7 +10,6 @@ sentence_id_pattern = 'progja:sentence:{Sentence}'
 
 
 def create_cards(component, style=None):
-    from datetime import datetime
     component_text, component_type = component
     if component_type == 'radical':
         return create_radical_cards(component, style)
@@ -274,8 +273,9 @@ def create_sentence_tags(sentence):
     return sorted(list(tags))
 
 
-def create_card(card_id, front, back, tags, front_classes=None,
-        back_classes=None, style=None):
+def create_card(
+        card_id, front, back, tags, front_classes=None, back_classes=None,
+        style=None):
     return {
         'ID': card_id,
         'Front': create_front(front, front_classes, style),
@@ -300,8 +300,8 @@ def create_back(contents, back_classes=None, style=None):
     ])
 
 
-def create_question_subject(question, subject, question_classes=None,
-        subject_classes=None):
+def create_question_subject(
+        question, subject, question_classes=None, subject_classes=None):
     question = question if type(question) == list else [question]
     subject = subject if type(subject) == list else [subject]
     question_classes = ['question', *(question_classes or [])]
@@ -343,8 +343,9 @@ def create_progression_list(progression):
     ])
 
 
-def create_back_section(label, contents, section_classes=None,
-        label_classes=None, contents_classes=None):
+def create_back_section(
+        label, contents, section_classes=None, label_classes=None,
+        contents_classes=None):
     section_classes = ['section', *(section_classes or [])]
     label_classes = ['label', *(label_classes or [])]
     contents_classes = ['contents', *(contents_classes or [])]
@@ -421,6 +422,6 @@ def _create_el(el, contents, attributes=None):
     return [
         '<{} {}>'.format(el, attributes_str) if attributes
         else '<{}>'.format(el),
-            *contents,
+        *contents,
         '</{}>'.format(el)
     ]

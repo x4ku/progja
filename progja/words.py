@@ -109,8 +109,9 @@ def load_common():
         + (copy['PriorityIchi'] > 0).astype(int)
         + (copy['PriorityNews'] > 0).astype(int)
     )
-    sort_by = ['_PriorityCount', 'PriorityNF', 'PriorityIchi', 'PriorityNews',
-        'Word', 'Reading']
+    sort_by = [
+        '_PriorityCount', 'PriorityNF', 'PriorityIchi', 'PriorityNews', 'Word',
+        'Reading']
     sort_ascending = [0, 1, 1, 1, 1, 1]
     sort_index = copy.sort_values(sort_by, ascending=sort_ascending).index
     df = df.reindex(sort_index).reset_index(drop=True)
@@ -229,6 +230,7 @@ def load_entities():
 def progression_builder(compositions, kanji_progressions=None):
     if not kanji_progressions:
         kanji_progressions = kanji.load_progressions()
+
     def build_progression(root_component):
         # start the progression with the root component
         progression = [root_component]
@@ -267,6 +269,7 @@ def component_classifier(words=None, readings=None):
         words = set(load()['Word']).union(load_sometimes_kana()['Reading'])
     if not readings:
         readings = set(load()['Reading'])
+
     def classify(text):
         component_type = None
         if text in words:

@@ -7,7 +7,7 @@ from itertools import zip_longest
 import pandas as pd
 root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(root_dir)
-import progja
+import progja  # noqa: E402
 
 
 logger = logging.getLogger(__name__)
@@ -15,11 +15,12 @@ progja.logging.configure_logging()
 
 parser = argparse.ArgumentParser()
 targets = ('kanji', 'words', 'sentences', 'progressions', 'path', 'paths')
-parser.add_argument('target', choices=targets, metavar='<target>',
-    help='The target to learn')
+parser.add_argument(
+    'target', choices=targets, metavar='<target>', help='The target to learn')
 level_choices = progja.paths.levels
-parser.add_argument('--level', nargs='?', type=int, choices=level_choices,
-    metavar='n', const=1, help='A path level (default: 1)')
+parser.add_argument(
+    '--level', nargs='?', type=int, choices=level_choices, metavar='n', const=1,
+    help='A path level (default: 1)')
 
 
 def main():

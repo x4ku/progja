@@ -8,14 +8,15 @@ import time
 import requests
 root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(root_dir)
-import progja
+import progja  # noqa: E402
 
 
 logger = logging.getLogger(__name__)
 progja.logging.configure_logging()
 
 temp_dir = os.path.join(root_dir, 'temp')
-temp_path = lambda *p: os.path.join(temp_dir, *p)
+def temp_path(*p): os.path.join(temp_dir, *p)
+
 
 jmdict_download_url = 'http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz'
 
@@ -23,21 +24,24 @@ tatoeba_download_url = 'https://tatoeba.org/eng/downloads'
 tatoeba_exports_url = 'https://tatoeba.org/eng/exports'
 tatoeba_exports_add_url = 'https://tatoeba.org/eng/exports/add'
 tatoeba_exports_get_url = 'https://tatoeba.org/eng/exports/get/{id}'
-tatoeba_exports_download_url = ('https://tatoeba.org/eng/exports/download/{id}/'
-    '{filename}')
+tatoeba_exports_download_url = \
+    'https://tatoeba.org/eng/exports/download/{id}/{filename}'
 
 tatoeba_export_timeout = 120
 
 parser = argparse.ArgumentParser()
 targets = ('jmdict', 'tatoeba')
-parser.add_argument('target', choices=targets, metavar='<target>',
+parser.add_argument(
+    'target', choices=targets, metavar='<target>',
     help='The target to download')
 
 
 def main():
     args = parser.parse_args()
-    if args.target == 'jmdict': download_jmdict()
-    elif args.target == 'tatoeba': download_tatoeba()
+    if args.target == 'jmdict':
+        download_jmdict()
+    elif args.target == 'tatoeba':
+        download_tatoeba()
 
 
 def download_jmdict():

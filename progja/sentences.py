@@ -1,7 +1,6 @@
 import logging
 from functools import cache
 from random import randint
-import pandas as pd
 from . import data, kanji, words
 
 
@@ -22,7 +21,6 @@ def find(sentence):
     df3 = df[df['Sentence'] == sentence]
     records = df3.to_dict('records')
     for record in records:
-        translations = []
         df3 = df2[df2['Sentence'] == record['Sentence']]
         record['Translations'] = df3.to_dict('records')
         record['Composition'] = compositions.get(record['Sentence'], [])
@@ -104,12 +102,13 @@ def load_progressions():
     return progressions
 
 
-def progression_builder(compositions, kanji_progressions=None,
-        word_progressions=None):
+def progression_builder(
+        compositions, kanji_progressions=None, word_progressions=None):
     if not kanji_progressions:
         kanji_progressions = kanji.load_progressions()
     if not word_progressions:
         word_progressions = words.load_progressions()
+
     def build_progression(root_component):
         # start the progression with the root component
         progression = [root_component]
