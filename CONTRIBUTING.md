@@ -126,7 +126,7 @@ $ python -m unittest -v tests.test_kanji.TestKanjiCompositions
 You can use `flake8` to check for code style and quality issues:
 ```sh
 $ flake8 progja
-$ flake8 --filename '*' pipeline
+$ flake8 pipeline/*
 ```
 
 ## Releases
@@ -210,11 +210,11 @@ $ pip install progja
 order to avoid potential data loss or corruption. It is also recommended that
 you perform this step from a separate Anki profile.
 
-Make sure you have the latest version of each deck installed. Import each deck
+Make sure you have the latest version of each deck installed. Import each data
 file using the steps below:
 
 1. Click `Import File`
-2. Locate the `progja/data/decks/deck-level-<level>.csv` file and click `Open`
+2. Locate the `progja/data/cards/cards-level-<level>.csv` file and click `Open`
 3. Select the "Progressive Japanese Note" note type
 4. Select the "Progressive Japanese (Lv. <level>)" deck
 5. Select `Update existing notes when first field matches`

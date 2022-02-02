@@ -8,6 +8,7 @@ root_dir = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 parser = argparse.ArgumentParser()
 parser.add_argument('--only', help='Only run the specified steps')
 parser.add_argument('--skip', help='Skip the specified steps')
+parser.add_argument('--version', help='Override the version number')
 
 
 def main():
@@ -16,18 +17,18 @@ def main():
     skip = list(filter(None, (args.skip or '').split(',')))
     execute_steps([
         'cd {}'.format(root_dir),
-        *get_steps(only, skip)
+        *get_steps(only, skip, version=args.version)
     ])
 
 
-def get_steps(only, skip):
+def get_steps(only, skip, version=None):
     return [
         *get_download_steps(only, skip),
         *get_convert_steps(only, skip),
         *get_learn_steps(only, skip),
         *get_prune_steps(only, skip),
         *get_test_steps(only, skip),
-        *get_generate_steps(only, skip),
+        *get_generate_steps(only, skip, version),
         *get_stats_steps(only, skip)
     ]
 
@@ -103,10 +104,14 @@ def get_test_steps(only, skip):
     return steps
 
 
-def get_generate_steps(only, skip):
+def get_generate_steps(only, skip, version=None):
     steps = []
     if 'generate' not in skip and (not only or 'generate' in only):
-        steps.append('pipeline/generate decks')
+        step = 'pipeline/generate cards'
+        if version:
+            steps.append('{} --version {}'.format(step, version))
+        else:
+            steps.append(step)
     return steps
 
 

@@ -12,9 +12,6 @@ __pycache__
 # virtual environment
 /venv
 
-# decks
-/progja/data/decks
-
 # sandbox
 /sandbox
 

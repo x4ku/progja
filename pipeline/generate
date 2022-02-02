@@ -13,67 +13,78 @@ logger = logging.getLogger(__name__)
 progja.logging.configure_logging()
 
 parser = argparse.ArgumentParser()
-targets = ('deck', 'decks')
+targets = ('deck', 'decks', 'cards')
 parser.add_argument(
     'target', choices=targets, metavar='<target>',
     help='The target to generate')
 level_choices = progja.paths.levels
 parser.add_argument(
     '--level', nargs='?', type=int, choices=level_choices, metavar='n', const=1,
-    help='A deck level (default: 1)')
+    help='A path level (default: 1)')
 parser.add_argument('--version', help='Override the version number')
+
+decks_dir = os.path.join(root_dir, 'decks')
+decks_path = lambda *p: os.path.join(decks_dir, *p)  # noqa: E731
 
 
 def main():
     args = parser.parse_args()
-    if args.target == 'deck':
-        build_level_deck(args.level, version=args.version)
-    if args.target == 'decks':
+    if args.target == 'cards':
+        if args.level:
+            generate_cards_for_level(args.level, version=args.version)
+        else:
+            for level in level_choices:
+                generate_cards_for_level(level, version=args.version)
+    elif args.target == 'deck':
+        logger.warning('target "deck" is deprecated - use "cards" instead')
+        generate_cards_for_level(args.level, version=args.version)
+    elif args.target == 'decks':
+        logger.warning('target "decks" is deprecated - use "cards" instead')
         for level in level_choices:
-            build_level_deck(level, version=args.version)
+            generate_cards_for_level(level, version=args.version)
 
 
-def build_level_deck(level, version=None):
-    logger.info('building level {} deck ...'.format(level))
+def generate_cards_for_level(level, version=None):
+    logger.info('generating level {} cards ...'.format(level))
     path = progja.paths.load_level(level)
-    deck = build_deck(path, version)
-    deck = dedupe_deck(deck)
-    save_level_deck(deck, level)
-    logger.info('built level {} deck'.format(level))
+    cards = generate_cards(path, version)
+    cards = dedupe_cards(cards)
+    save_cards_for_level(cards, level)
+    logger.info('generated level {} cards'.format(level))
 
 
-def build_deck(path, version=None):
+def generate_cards(path, version=None):
     version = version or progja.VERSION
-    logger.info('building deck ...')
-    deck = []
+    logger.info('generating cards ...')
+    cards = []
     for component in zip(path['Component'], path['Type']):
         for card in progja.decks.create_cards(component):
             # add the version tag to the card
             tags = card['Tags'].split(' ')
             tags.append('progja::version::{}'.format(version))
             card['Tags'] = ' '.join(tags)
-            # add the card to the deck
-            deck.append(card)
-    logger.info('built deck')
-    return deck
+            # add the card to the list
+            cards.append(card)
+    logger.info('generated cards')
+    return cards
 
 
-def dedupe_deck(deck):
+def dedupe_cards(cards):
     deduped = {}
-    for card in deck:
+    for card in cards:
         deduped[card['ID']] = card
     return list(deduped.values())
 
 
-def save_level_deck(deck, level):
-    filename = 'deck-level-{}.csv'.format(level)
-    save_deck(deck, progja.data.path('decks', filename))
+def save_cards_for_level(cards, level):
+    filename = 'cards-level-{}.csv'.format(level)
+    save_cards(cards, decks_path('cards', filename))
 
 
-def save_deck(deck, path):
-    logger.info('saving deck ...')
-    pd.DataFrame(deck).to_csv(path, index=None, header=None)
-    logger.info('saved deck ...')
+def save_cards(cards, path):
+    logger.info('saving cards ...')
+    pd.DataFrame(cards).to_csv(path, index=None, header=None)
+    logger.info('saved cards ...')
 
 
 if __name__ == '__main__':

@@ -1,3 +1,2 @@
 
-recursive-include progja *.(csv,json,css)
-recursive-exclude progja deck*.csv
+recursive-include progja *.(csv,json)
