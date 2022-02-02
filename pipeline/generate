@@ -21,44 +21,33 @@ level_choices = progja.paths.levels
 parser.add_argument(
     '--level', nargs='?', type=int, choices=level_choices, metavar='n', const=1,
     help='A deck level (default: 1)')
-parser.add_argument(
-    '--embed-style', action='store_true',
-    help='Embed default style within each card')
 parser.add_argument('--version', help='Override the version number')
 
 
 def main():
     args = parser.parse_args()
-    style = load_default_deck_style() if args.embed_style else None
     if args.target == 'deck':
-        build_level_deck(args.level, style=style, version=args.version)
+        build_level_deck(args.level, version=args.version)
     if args.target == 'decks':
         for level in level_choices:
-            build_level_deck(level, style=style, version=args.version)
+            build_level_deck(level, version=args.version)
 
 
-def load_default_deck_style():
-    logger.info('loading default deck style ...')
-    style = progja.data.read_text('deck-style.css')
-    logger.info('loaded default deck style')
-    return style
-
-
-def build_level_deck(level, style=None, version=None):
+def build_level_deck(level, version=None):
     logger.info('building level {} deck ...'.format(level))
     path = progja.paths.load_level(level)
-    deck = build_deck(path, style, version)
+    deck = build_deck(path, version)
     deck = dedupe_deck(deck)
     save_level_deck(deck, level)
     logger.info('built level {} deck'.format(level))
 
 
-def build_deck(path, style=None, version=None):
+def build_deck(path, version=None):
     version = version or progja.VERSION
     logger.info('building deck ...')
     deck = []
     for component in zip(path['Component'], path['Type']):
-        for card in progja.decks.create_cards(component, style):
+        for card in progja.decks.create_cards(component):
             # add the version tag to the card
             tags = card['Tags'].split(' ')
             tags.append('progja::version::{}'.format(version))
