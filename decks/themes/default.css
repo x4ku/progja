@@ -1,15 +1,31 @@
 
+/* Structure */
+
+ul, ol {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+ul li, ol li {
+    padding: 0;
+    list-style-position: outside;
+}
+
 .card {
     font-family: arial;
     font-size: 20px;
     text-align: left;
-    color: #1f1f1f;
-    background-color: #f9f9f9;
+    padding: 10px;
 }
 
 .front .subject {
-    font-size: 2em;
     font-weight: bold;
+    font-size: 2em;
+}
+
+.front-kanji .subject,
+.front-radical .subject {
+    font-size: 4em;
 }
 
 .back .section {
@@ -22,21 +38,45 @@
 }
 
 .back-word .definition .part-of-speech {
-    font-size: 0.8em;
-    color: #7f7f7f;
     display: block;
 }
 
+.back-word .definition .part-of-speech,
+.back-sentence .reading .reading {
+    font-size: 0.8em;
+}
+
+/* Colors */
+
+a {
+    color: #913228;
+}
+
+a:hover {
+    color: #DC3023;
+}
+
+.card {
+    color: #351E1C;
+    background-color: #f9f9f9;
+}
+
 .text-japanese {
-    color: #bc002d;
+    color: #C3272B;
 }
 
-ul, ol {
-    margin-top: 0;
-    margin-bottom: 0;
+.front .subject a {
+    color: #913228;
 }
 
-ul li, ol li {
-    padding: 0;
-    list-style-position: outside;
+.front .subject a:hover {
+    color: #DC3023;
+}
+
+.back-word .definition .part-of-speech {
+    color: #7f7f7f;
+}
+
+.back-sentence .reading .reading {
+    color: #9f9f9f;
 }
