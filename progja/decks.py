@@ -237,7 +237,7 @@ def create_sentence_card(sentence, id_pattern=sentence_id_pattern):
         card_id=id_pattern.format(**sentence),
         front=create_question_subject(
             'What is the translation of the following sentence?',
-            sentence['Sentence'],
+            create_jisho_link(sentence['Sentence'], 'sentence'),
             subject_classes=['text-japanese']
         ),
         back=[
