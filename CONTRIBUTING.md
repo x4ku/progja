@@ -214,7 +214,7 @@ Make sure you have the latest version of each deck installed. Import each deck
 file using the steps below:
 
 1. Click `Import File`
-2. Locate the `progja/data/deck-level-<level>.csv` file and click `Open`
+2. Locate the `progja/data/decks/deck-level-<level>.csv` file and click `Open`
 3. Select the "Progressive Japanese Note" note type
 4. Select the "Progressive Japanese (Lv. <level>)" deck
 5. Select `Update existing notes when first field matches`
@@ -225,6 +225,9 @@ file using the steps below:
 
 Remove all cards from the decks that are not tagged with the latest version
 (search for `-tag:progja::version::<version>`).
+
+Make sure to update the CSS for the "Progressive Japanese Note" note type if the
+styling has changed.
 
 Sync the decks with AnkiWeb and then share the updated decks from the AnkiWeb.
 <br>
