@@ -1,3 +1,4 @@
+import re
 import urllib.parse
 import pandas as pd
 from . import kanji, words, sentences
@@ -7,6 +8,8 @@ radical_id_pattern = 'progja:radical:{Kanji}'
 kanji_id_pattern = 'progja:kanji:{Kanji}'
 word_id_pattern = 'progja:word:{ID}'
 sentence_id_pattern = 'progja:sentence:{Sentence}'
+
+reading_pattern = re.compile('(【[^】]*】)')
 
 
 def create_cards(component):
@@ -243,7 +246,7 @@ def create_sentence_card(sentence, id_pattern=sentence_id_pattern):
         back=[
             *create_back_section(
                 'Reading',
-                sentence['Reading'],
+                create_sentence_reading(sentence['Reading']),
                 ['reading'],
                 contents_classes=['text-japanese']
             ),
@@ -261,6 +264,14 @@ def create_sentence_card(sentence, id_pattern=sentence_id_pattern):
         front_classes=['front-sentence'],
         back_classes=['back-sentence']
     )
+
+
+def create_sentence_reading(reading):
+    unique_matches = set(reading_pattern.findall(reading))
+    for match in unique_matches:
+        match_span = ''.join(create_span(match, ['reading']))
+        reading = reading.replace(match, match_span)
+    return reading
 
 
 def create_sentence_tags(sentence):
