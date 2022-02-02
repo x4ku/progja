@@ -349,8 +349,9 @@ def create_back_section(
 
 def create_jisho_link(component_text, component_type):
     search_url = 'https://jisho.org/search'
+    kanji_types = ('radical', 'radical-variant', 'kanji', 'kanji-variant')
     query = component_text
-    if component_type in ('radical', 'kanji'):
+    if component_type in kanji_types:
         query = '{} #kanji'.format(component_text[0])
     href = '{}/{}'.format(search_url, urllib.parse.quote(query))
     return create_anchor(component_text, href)
