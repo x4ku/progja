@@ -58,8 +58,8 @@ def path_builder(root_path):
 
 
 path = path_builder(data_dir)
-def exists(*p): os.path.exists(path(*p))
-read_text = text_reader(path)  # noqa: E305
+exists = lambda *p: os.path.exists(path(*p))  # noqa: E731
+read_text = text_reader(path)
 read_csv = csv_reader(path)
 write_jsonl = jsonl_writer(path)
 read_json = json_reader(path)

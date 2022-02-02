@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 progja.logging.configure_logging()
 
 temp_dir = os.path.join(root_dir, 'temp')
-def temp_path(*p): os.path.join(temp_dir, *p)
+temp_path = lambda *p: os.path.join(temp_dir, *p)  # noqa: E731
 
 
 parser = argparse.ArgumentParser()
