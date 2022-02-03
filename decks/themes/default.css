@@ -61,6 +61,11 @@ a:hover {
     background-color: #f9f9f9;
 }
 
+.card.nightMode {
+    color: #5C544E;
+    background-color: #d9d9d9;
+}
+
 .text-japanese {
     color: #C3272B;
 }
@@ -79,4 +84,8 @@ a:hover {
 
 .back-sentence .reading .reading {
     color: #9f9f9f;
+}
+
+.nightMode .back-sentence .reading .reading {
+    color: #7f7f7f;
 }
