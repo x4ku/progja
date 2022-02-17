@@ -1,0 +1,30 @@
+stages:
+  - static-analysis
+  - test
+
+default:
+  timeout: 15 min
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: always
+
+.python:
+  image: "python:3.9"
+  before_script:
+    - python --version
+    - pip install -r requirements-dev.txt
+
+flake8:
+  extends: .python
+  stage: static-analysis
+  script:
+    - flake8 progja
+
+unittest:
+  extends: .python
+  stage: test
+  script:
+    - python -m unittest
