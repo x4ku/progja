@@ -22,6 +22,8 @@ flake8:
   stage: static-analysis
   script:
     - flake8 progja
+    - flake8 pipeline/*
+    - flake8 bin/build
 
 unittest:
   extends: .python
