@@ -46,13 +46,13 @@ def convert_jmdict():
 
 
 def load_jmdict_entries():
-    logger.info('loading jmdict entries ...')
+    logger.info('loading JMdict entries ...')
     entries = []
     with open(temp_path('JMdict_e')) as file:
         lines = [line.rstrip('\n') for line in file]
         doc = bs(''.join(lines), 'lxml')
         entries = parse_jmdict_entries(doc)
-    logger.info('loaded jmdict entries')
+    logger.info('loaded JMdict entries')
     return entries
 
 
@@ -395,7 +395,7 @@ def convert_tatoeba():
 
 
 def load_tatoeba_sentence_pairs():
-    logger.info('loading tatoeba sentence pairs ...')
+    logger.info('loading Tatoeba sentence pairs ...')
     sentence_pairs = []
     with open(temp_path('tatoeba.tsv')) as file:
         for line in file:
@@ -406,12 +406,13 @@ def load_tatoeba_sentence_pairs():
                 'TranslationID': line[2],
                 'Translation': line[3]
             })
-    logger.info('loaded tatoeba sentence pairs')
+    logger.info('loaded Tatoeba sentence pairs')
     return sentence_pairs
 
 
 def build_sentences(sentence_pairs):
     logger.info('building sentences ...')
+    build_reading = sentence_reading_builder()
     sentences = {}
     for sentence_pair in sentence_pairs:
         sentence = sentence_pair['Sentence']
@@ -421,7 +422,9 @@ def build_sentences(sentence_pairs):
         # add the sentence, if necessary
         if sentence not in sentences:
             sentences[sentence] = build_sentence(sentence_pair)
-        # add the translation to the sentence
+        # add the reading
+        sentences[sentence]['Reading'] = build_reading(sentence)
+        # add the translation
         sentences[sentence]['Translations'].append({
             'Translation': sentence_pair['Translation'],
             'TranslationID': sentence_pair['TranslationID']
@@ -436,21 +439,31 @@ def build_sentence(sentence_pair):
         'Sentence': sentence,
         'SentenceID': sentence_pair['SentenceID'],
         'Length': len(sentence),
-        'Reading': build_sentence_reading(sentence),
-        'Translations': []
+        'Reading': '',  # added later
+        'Translations': []  # added later
     }
 
 
-def build_sentence_reading(sentence):
-    parts = []
-    for token in progja.tokenizer.tokenize(sentence):
-        if token['Surface'].lower() == token['Reading'].lower():
-            parts.append(token['Surface'])
-        elif token['Reading'] == 'キゴウ':
-            parts.append(token['Surface'])
-        else:
-            parts.append('{}【{}】'.format(token['Surface'], token['Reading']))
-    return ' '.join(parts)
+def sentence_reading_builder():
+    words = progja.words.load()
+    word_kanji = dict(zip(words['Word'], words['Kanji']))
+
+    def build_reading(sentence):
+        parts = []
+        for token in progja.tokenizer.tokenize(sentence):
+            surface = token['Surface']
+            lemma = token['Lemma']
+            reading = token['Reading']
+            if surface.lower() == reading.lower() or reading == 'キゴウ':
+                parts.append(surface)
+            else:
+                kanji = word_kanji.get(lemma)
+                if kanji and pd.isna(kanji):
+                    parts.append(surface)
+                else:
+                    parts.append('{}【{}】'.format(surface, reading))
+        return ' '.join(parts)
+    return build_reading
 
 
 def decompose_sentences(sentences):
