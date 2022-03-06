@@ -163,29 +163,6 @@ new version number.
 > `-tag:progja::version::1.2.4` to find all cards not tagged with the new
 > version number.
 
-## Caveats
-
-This project is not perfect (yet). There are a few caveats you should be aware
-of before using it for your own studies and in your own projects.
-
-- The project is still under active development. It may contain bugs.
-- The source for word data is JMdict, a dictionary database. It's a relatively
-  exhaustive source for words and definitions. As a result, some words in this
-  project have many, many definitions and variations.
-    - Our advice is to focus on the first few definitions and treat the
-      remaining as optional/extra information.
-- The source for sentence data is Tatoeba. Sentences and translations are
-  crowd-sourced and managed by volunteers. As a result, some sentences in this
-  project may be a bit random or may have low quality translations.
-- Sentences and words are split into subcomponents using a tokenizer. The way
-  that the tokenizer splits some words and sentences can often result in strange
-  or nonintuitive components (notably: grammatical components). You will likely
-  encounter several of these.
-    - Our advice is to just move past these as you study if they do not provide
-      any value to you. Treat them as optional/extra information.
-- Sentence readings  had to be hacked together and may be inaccurate. We are
-  exploring additional options, like text-to-speech audio readings.
-
 ## Stats
 
 See: [`docs/stats.md`].
