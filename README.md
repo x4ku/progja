@@ -134,9 +134,9 @@ See the `examples/` directory for example usage.
 It is recommended that you backup your Anki profile before proceeding.
 
 The Anki decks provided by this project are available via AnkiWeb:
-1. [Progressive Japanese (Lv. 1)](https://ankiweb.net/shared/info/1475570445)
-2. [Progressive Japanese (Lv. 2)](https://ankiweb.net/shared/info/1622728973)
-3. [Progressive Japanese (Lv. 3)](https://ankiweb.net/shared/info/188104618)
+1. Progressive Japanese (Lv. 1) (pending)
+2. Progressive Japanese (Lv. 2) (pending)
+3. Progressive Japanese (Lv. 3) (pending)
 4. Progressive Japanese (Lv. 4) (pending)
 5. Progressive Japanese (Lv. 5) (pending)
 
