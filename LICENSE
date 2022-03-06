@@ -1,3 +1,53 @@
+This project contains data from the CHISE project. The CHISE Ideographic
+Description Sequences (IDS) package provides descriptions of the structure of
+CJK Ideographs. This package is used to populate the kanji `IDS` field and to
+derive the compositions of all kanji in this project.
+
+https://www.chise.org
+
+https://gitlab.chise.org/CHISE/ids
+
+The CHISE project is licensed under the GNU General Public License (GPL) v2.
+
+https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+
+
+This project contains data from KANJIDIC and JMdict, which are maintained by the
+Electronic Dictionary Research and Development Group (EDRDG). KANJIDIC is used
+for most of the kanji data in this project. JMdict is used for most of the word
+data in this project.
+
+https://www.edrdg.org
+
+https://www.edrdg.org/wiki/index.php/KANJIDIC_Project
+
+https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project
+
+KANJIDIC and JMdict are licensed under a Creative Commons Attribution-ShareAlike
+Licence (V3.0).
+
+https://www.edrdg.org/edrdg/licence.html
+
+https://creativecommons.org/licenses/by-sa/3.0/
+
+
+
+This project contains data from Tatoeba. Tatoeba is used for most of the
+sentence data in this project. Only a subset of the sentences/translation pairs
+provided by Tatoeba is used in this project.
+
+https://tatoeba.org/eng/about
+
+Tatoeba is licensed under the Creative Commons Attribution 2.0 France License
+(CC BY 2.0 FR).
+
+https://creativecommons.org/licenses/by/2.0/fr/deed.en
+
+
+
+The remainder of this project is licensed under the MIT license.
+
 Copyright (c) 2021 Zach McAuliffe
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

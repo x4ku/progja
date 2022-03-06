@@ -7,8 +7,8 @@ Data and tools for those studying the Japanese language.
 - [Overview](#overview)
 - [Installation](#installation)
 - [Stats](#stats)
-- [License and Attribution](#license-and-attribution)
 - [Contributing](#contributing)
+- [License](#license)
 
 ## Overview
 
@@ -90,10 +90,10 @@ A path is more opinionated than a progression. It's usually structured in order
 to achieve some goal or a set of goals. The default path provided by this
 project tries to balance the following goals:
 
-1. Learn the primary and secondary Jōyō kanji
-2. Learn the Jinmeiyō kanji
-3. Learn high priority words, according to JMdict
-4. Learn any other kanji or words that appear frequently in Tatoeba sentences
+1. Learn the primary and secondary [Jōyō kanji]
+2. Learn the [Jinmeiyō kanji]
+3. Learn high priority words, according to [JMdict]
+4. Learn any other kanji or words that appear frequently in [Tatoeba] sentences
 5. Reinforce kanji and vocabulary with example sentences
 
 The default path is split into several levels, each with its own set of
@@ -190,105 +190,30 @@ of before using it for your own studies and in your own projects.
 
 See: [`docs/stats.md`].
 
-## License and Attribution
-
-This project would not be possible without data provided by external projects.
-Attribution for the projects providing this data is detailed below. Use of this
-data in your own projects is subject to the terms and conditions outlined in the
-licenses for each of these projects.
-
-Everything else within this project that did not originate from an outside
-source is licensed under the MIT License. Please see `LICENSE` for more
-information.
-
-### CHISE
-
-> The CHISE (CHaracter Information Service Environment) project is an open
-> source research and development project aiming at realizing a next-generation
-> character processing environment that is not restricted by general-purpose
-> coded character sets by directly using various knowledge of characters.
->
-> Source: https://www.chise.org
-
-The CHISE Ideographic Description Sequences (IDS) package provides descriptions
-of the structure of CJK Ideographs. This package is used to populate the kanji
-`IDS` field and to derive the compositions of all kanji in this project.
-<br>
-https://gitlab.chise.org/CHISE/ids
-<br>
-https://gitlab.chise.org/CHISE/ids/-/blob/master/README.en
-
-The CHISE project is licensed under the GNU General Public License (GPL) v2.
-<br>
-https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
-
-
-### EDRDG
-
-> The Electronic Dictionary Research and Development Group was set up at in 2000
-> at Monash University in Australia by Jim Breen, who at that time was an
-> Associate Professor in the Faculty of Information Technology. The main reason
-> for establishing the Group was to have a vehicle which could hold the
-> copyright for the various dictionary files Jim and others had compiled, and
-> which could receive and spend funds in a tax-effective way for the improvement
-> of the files and associated software.
->
-> Source: https://www.edrdg.org/wiki/index.php/About_EDRDG
-
-The EDRDG maintains KANJIDIC and JMdict, which are both used in this project.
-KANJIDIC is used for most of the kanji data in this project. JMdict is used for
-most of the word data in this project.
-<br>
-https://www.edrdg.org/wiki/index.php/KANJIDIC_Project
-<br>
-https://www.edrdg.org/wiki/index.php/JMdict-EDICT_Dictionary_Project
-
-KANJIDIC and JMdict are licensed under a Creative Commons Attribution-ShareAlike
-Licence (V3.0).
-<br>
-https://www.edrdg.org/edrdg/licence.html
-<br>
-https://creativecommons.org/licenses/by-sa/3.0/
-
-### Tatoeba
-
-> Tatoeba is a large database of sentences and translations. Its content is
-> ever-growing and results from the voluntary contributions of thousands of
-> members.
->
-> Tatoeba provides a tool for you to see examples of how words are used in the
-> context of a sentence. You specify words that interest you, and it returns
-> sentences containing these words with their translations in the desired
-> languages. The name Tatoeba (for example in Japanese) captures this concept.
->
-> The project was founded by Trang Ho in 2006, hosted on Sourceforge under the
-> codename of multilangdict.
->
-> Source: https://tatoeba.org/eng/about
-
-Tatoeba is used for most of the sentence data in this project. Only a subset of
-the sentences/translation pairs provided by Tatoeba is used in this project.
-
-Tatoeba is licensed under the Creative Commons Attribution 2.0 France License
-(CC BY 2.0 FR).
-<br>
-https://creativecommons.org/licenses/by/2.0/fr/deed.en
-
 ## Contributing
 
-If you are interested in contributing to this project, please see
-[CONTRIBUTING.md] for more information.
+See: [`CONTRIBUTING.md`].
+
+## License
+
+See: [`LICENSE`].
 
 
 <!-- links -->
-[Attribution]: #attribution
-[CONTRIBUTING.md]: CONTRIBUTING.md
+
+[`CONTRIBUTING.md`]: CONTRIBUTING.md
+[`LICENSE`]: LICENSE
 [`docs/stats.md`]: docs/stats.md
-[Tae Kim's Guide]: https://guidetojapanese.org/learn/complete/
-[Duolingo]: https://www.duolingo.com/
-[Tatoeba]: https://tatoeba.org
-[progressions]: #what-is-a-progression
-[path]: #what-is-a-path
-[Stats]: #stats
+
 [Installing Anki Decks]: #installing-anki-decks
+[path]: #what-is-a-path
+[progressions]: #what-is-a-progression
+[Stats]: #stats
 [Upgrading Anki Decks]: #upgrading-anki-decks
+
+[Duolingo]: https://www.duolingo.com/
+[Jinmeiyō kanji]: https://en.wikipedia.org/wiki/Jinmeiy%C5%8D_kanji
+[JMdict]: https://www.edrdg.org/jmdict/j_jmdict.html
+[Jōyō kanji]: https://en.wikipedia.org/wiki/J%C5%8Dy%C5%8D_kanji
+[Tae Kim's Guide]: https://guidetojapanese.org/learn/complete/
+[Tatoeba]: https://tatoeba.org
